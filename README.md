@@ -1,55 +1,196 @@
-# Gene Analysis Usage Guide
+# Gene Analysis README
 
-This document summarizes the scripts currently in:
+This repository contains the operational scripts currently used in:
 
-`C:\Users\bruce\codex_code\gene_analysis`
+`/mnt/data/ai_agent/gene_analysis/scripts`
 
-Excluded from this guide:
+This README focuses on:
 
-- `cojo_annotation_manhattan_debug.R`
+- what each script does
+- the recommended execution order
+- all CLI / shell parameters
+- the overall folder structure expected by the scripts
 
-## Recommended Order
+## Overall Workflow
 
-The current workflow is best understood as 4 stages:
+There are 3 major downstream analysis branches after GWAS:
 
-1. Prepare phenotype files when needed
-2. Convert GWAS results into downstream formats
-3. Run association tools
-4. Generate summary tables and figures
+1. `COJO`
+2. `FUSION`
+3. `S-PrediXcan`
 
 Recommended order:
 
+1. Prepare phenotype files if needed
+2. Run GWAS outside this repository
+3. Convert GWAS output into downstream formats
+4. Run COJO / FUSION / S-PrediXcan
+5. Generate tables and plots
+
+## Recommended Execution Order
+
+### A. Phenotype preparation
+
 1. `make_twb2_pheno_cli.R`
+
+### B. GWAS preprocessing
+
 2. External PLINK GWAS step
 3. `process_gwas_sumstats_cli.R`
+
+### C. COJO branch
+
 4. `cojo.sh`
 5. `cojo_annotation_manhattan_cli.R`
+
+### D. FUSION branch
+
 6. `fusion_v8_twas.sh`
 7. `fusion_manhattan_heatmap_cli.R`
+
+### E. S-PrediXcan branch
+
 8. `spredixcan_v8_twas.sh`
 9. `spredixcan_manhattan_heatmap_cli.R`
 
-## Script Overview
+## Folder Structure
+
+Below is the main directory structure assumed by the current code.
+
+```text
+/mnt/data/ai_agent/gene_analysis
+├─ PLINK/
+│  └─ imputed/
+│     ├─ glm_logistic/
+│     │  └─ <project_name>/
+│     │     ├─ chr1.PHENO1.glm.logistic.hybrid
+│     │     ├─ chr2.PHENO1.glm.logistic.hybrid
+│     │     └─ ...
+│     └─ plink_binary_files/
+│        └─ <project_name>/
+│           ├─ chr1<PLINK_FILE_PATTERN>.bed
+│           ├─ chr1<PLINK_FILE_PATTERN>.bim
+│           ├─ chr1<PLINK_FILE_PATTERN>.fam
+│           └─ ...
+├─ COJO/
+│  └─ <project_name>/
+│     ├─ chr1.cojo.ma
+│     ├─ chr2.cojo.ma
+│     ├─ ...
+│     ├─ result/
+│     │  ├─ chr1_p1e6.*
+│     │  ├─ chr2_p1e6.*
+│     │  └─ log/
+│     ├─ table/
+│     ├─ manhattan/
+│     └─ log/
+├─ FUSION/
+│  ├─ GWAS/
+│  │  └─ <project_name>/
+│  │     ├─ chr1.sumstats
+│  │     ├─ chr2.sumstats
+│  │     ├─ ...
+│  │     └─ log/
+│  ├─ LDREF/
+│  ├─ WEIGHTS/
+│  ├─ WEIGHTS_v7/
+│  ├─ fusion_twas/
+│  ├─ result_v8/
+│  │  └─ <project_name>/
+│  │     ├─ chr1/
+│  │     ├─ chr2/
+│  │     ├─ ...
+│  │     ├─ table/
+│  │     ├─ manhanttan/
+│  │     ├─ heatmap/
+│  │     └─ log/
+│  └─ result_v7/
+│     └─ <project_name>/
+│        ├─ chr1/
+│        ├─ ...
+│        ├─ table/
+│        ├─ manhanttan/
+│        └─ heatmap/
+├─ S_PrediXcan/
+│  ├─ GWAS/
+│  │  └─ <project_name>/
+│  │     └─ chr1tochr22.sumstats
+│  ├─ model/
+│  │  └─ GTEx_v8/
+│  │     └─ elastic_net_models/
+│  ├─ tissues.txt
+│  ├─ tissues_v8_elastic_net.txt
+│  ├─ result_v8/
+│  │  └─ <project_name>/
+│  │     ├─ <tissue>_SPrediXcan_v8_en.csv
+│  │     ├─ table/
+│  │     ├─ manhanttan/
+│  │     └─ heatmap/
+│  └─ result_v7/
+│     └─ <project_name>/
+│        ├─ <tissue>_SPrediXcan_v7_en.csv
+│        ├─ table/
+│        ├─ manhanttan/
+│        └─ heatmap/
+├─ scripts/
+|  ├─ cojo.sh
+|  ├─ cojo_annotation_manhattan_cli.R
+|  ├─ fusion_manhattan_heatmap_cli.R
+|  ├─ fusion_v8_twas.sh
+|  ├─ make_twb2_pheno_cli.R
+|  ├─ process_gwas_sumstats_cli.R
+|  ├─ spredixcan_manhattan_heatmap_cli.R
+|  ├─spredixcan_v8_twas.sh
+└─ tools/
+   └─ ensembl/
+      └─ Homo_sapiens.GRCh37.87.gtf
+```
+
+## Script-by-Script Guide
 
 ### 1. `make_twb2_pheno_cli.R`
 
 Purpose:
-Create TWB2 phenotype and keep files from survey/lab data for downstream GWAS or phenotype-based analysis.
+Create TWB2 phenotype and keep files for downstream analysis.
 
 Usage:
+
+```bash
+Rscript make_twb2_pheno_cli.R <var_name> <var_type> [case_label] [control_label]
+```
+
+Named usage:
+
+```bash
+Rscript make_twb2_pheno_cli.R --var_name <var_name> --var_type <categorical|continuous> [--case_label <value>] [--control_label <value>]
+```
+
+Parameters:
+
+- `var_name`
+  Survey variable name, for example `VERTIGO_SELF` or `BMI`
+- `var_type`
+  Must be `categorical` or `continuous`
+- `case_label`
+  Required only for `categorical`
+- `control_label`
+  Required only for `categorical`
+
+Examples:
 
 ```bash
 Rscript make_twb2_pheno_cli.R VERTIGO_SELF categorical 1 0
 Rscript make_twb2_pheno_cli.R BMI continuous
 ```
 
-Inputs:
+Input files:
 
-- `release_list_survey.csv`
-- `lab_info.csv`
-- `TWB2.hg38.impu.v4.fam`
+- `/mnt/SP-siliconpower/TWB20250806download/survey/release_list_colnames.txt`
+- `/mnt/SP-siliconpower/TWB20250806download/survey/release_list_survey.csv`
+- `/mnt/SP-siliconpower/TWB20250806download/lab_info/lab_info.csv`
+- `/mnt/SP-siliconpower/TWB20250806download/Imputed.120161.TWB2/imputed_120161/TWB2.hg38.impu.v4.fam`
 
-Outputs:
+Output files:
 
 - `TWB2_<var_name>_pheno.txt`
 - `TWB2_<var_name>_keep.txt`
@@ -63,35 +204,68 @@ Output folder:
 Notes:
 
 - For `categorical`, output coding is `1 = control`, `2 = case`
-- For `continuous`, the original numeric value is kept
+- For `continuous`, the original numeric value is written
 
 ### 2. External GWAS step
 
 Purpose:
-Run your GWAS outside this folder, typically with PLINK logistic/linear regression.
+Run GWAS outside this repository, typically with PLINK logistic or linear regression.
 
-Expected output for the scripts below:
+Expected output folder:
 
 ```text
-/mnt/data/ai_agent/gene_analysis/PLINK/imputed/glm_logistic/<project_name>/chrN.PHENO1.glm.logistic.hybrid
+/mnt/data/ai_agent/gene_analysis/PLINK/imputed/glm_logistic/<project_name>/
 ```
 
-This step is not implemented as a script in the current folder.
+Expected files:
+
+```text
+chr1.PHENO1.glm.logistic.hybrid
+chr2.PHENO1.glm.logistic.hybrid
+...
+chr22.PHENO1.glm.logistic.hybrid
+```
+
+Expected PLINK binary folder for COJO:
+
+```text
+/mnt/data/ai_agent/gene_analysis/PLINK/imputed/plink_binary_files/<project_name>/
+```
 
 ### 3. `process_gwas_sumstats_cli.R`
 
 Purpose:
-Convert GWAS chromosome-level results into:
-
-- COJO input files
-- FUSION input files
-- one combined S-PrediXcan GWAS file
+Convert GWAS results into downstream input formats for COJO, FUSION, and S-PrediXcan.
 
 Usage:
 
 ```bash
+Rscript process_gwas_sumstats_cli.R <project_name> [base_dir]
+```
+
+Named usage:
+
+```bash
+Rscript process_gwas_sumstats_cli.R --project_name <project_name> [--base_dir <base_dir>]
+```
+
+Parameters:
+
+- `project_name`
+  Project name used in folder naming
+- `base_dir`
+  Base analysis directory
+  Default: `/mnt/data/ai_agent/gene_analysis`
+
+Example:
+
+```bash
 Rscript process_gwas_sumstats_cli.R TWB1_LAA_test /mnt/data/ai_agent/gene_analysis
 ```
+
+Input:
+
+- `PLINK/imputed/glm_logistic/<project_name>/chrN.PHENO1.glm.logistic.hybrid`
 
 Outputs:
 
@@ -99,69 +273,85 @@ Outputs:
 - `FUSION/GWAS/<project_name>/chrN.sumstats`
 - `S_PrediXcan/GWAS/<project_name>/chr1tochr22.sumstats`
 
-Notes:
+Logs:
 
-- Missing chromosome files are skipped with warnings
-- A process log is written under the FUSION GWAS log folder
+- `FUSION/GWAS/<project_name>/log/`
 
 ### 4. `cojo.sh`
 
 Purpose:
-Run GCTA-COJO chromosome by chromosome using PLINK binary files and `.cojo.ma` files.
+Run GCTA-COJO chromosome by chromosome.
 
 Usage:
+
+```bash
+bash cojo.sh PROJECT_NAME PLINK_FILE_PATTERN P_CUTOFF WINDOW [BASE_DIR]
+```
+
+Parameters:
+
+- `PROJECT_NAME`
+  Project name
+- `PLINK_FILE_PATTERN`
+  Suffix after `chrN`, for example `_DR2_0.7_QCFiltered`
+- `P_CUTOFF`
+  COJO p-value cutoff, for example `1e-6`
+- `WINDOW`
+  COJO window size, for example `10000`
+- `BASE_DIR`
+  Default: `/mnt/data/ai_agent/gene_analysis`
+
+Example:
 
 ```bash
 bash cojo.sh TWB1_LAA_test1 _DR2_0.7_QCFiltered 1e-6 10000
 ```
 
-Arguments:
+Expected inputs:
 
-- `PROJECT_NAME`
-- `PLINK_FILE_PATTERN`
-- `P_CUTOFF`
-- `WINDOW`
-- optional `BASE_DIR`
-
-Expected PLINK input:
-
-```text
-/mnt/data/ai_agent/gene_analysis/PLINK/imputed/plink_binary_files/<project_name>/chrN<PLINK_FILE_PATTERN>.bed/.bim/.fam
-```
-
-Expected COJO input:
-
-```text
-/mnt/data/ai_agent/gene_analysis/COJO/<project_name>/chrN.cojo.ma
-```
+- `PLINK/imputed/plink_binary_files/<project_name>/chrN<PLINK_FILE_PATTERN>.bed`
+- `PLINK/imputed/plink_binary_files/<project_name>/chrN<PLINK_FILE_PATTERN>.bim`
+- `PLINK/imputed/plink_binary_files/<project_name>/chrN<PLINK_FILE_PATTERN>.fam`
+- `COJO/<project_name>/chrN.cojo.ma`
 
 Outputs:
 
-```text
-/mnt/data/ai_agent/gene_analysis/COJO/<project_name>/result/chrN_p<P_CUTOFF_TAG>.*
-```
+- `COJO/<project_name>/result/chrN_p<P_CUTOFF_TAG>.*`
 
 Logs:
 
-```text
-/mnt/data/ai_agent/gene_analysis/COJO/<project_name>/result/log/
-```
+- `COJO/<project_name>/result/log/`
 
-Notes:
+Terminal summary:
 
-- Missing PLINK or COJO input files are skipped
-- Terminal summary is shown at the end
+- completed chromosomes
+- chromosomes missing PLINK bfiles
+- chromosomes missing COJO input files
 
 ### 5. `cojo_annotation_manhattan_cli.R`
 
 Purpose:
-Annotate COJO hits using local GTF and generate:
-
-- annotation tables
-- nearest protein-coding gene table
-- GWAS Manhattan plot
+Annotate COJO results with local GTF and generate tables plus GWAS Manhattan plot.
 
 Usage:
+
+```bash
+Rscript cojo_annotation_manhattan_cli.R <project_name> [base_dir]
+```
+
+Named usage:
+
+```bash
+Rscript cojo_annotation_manhattan_cli.R --project_name <project_name> [--base_dir <base_dir>]
+```
+
+Parameters:
+
+- `project_name`
+- `base_dir`
+  Default: `/mnt/data/ai_agent/gene_analysis`
+
+Example:
 
 ```bash
 Rscript cojo_annotation_manhattan_cli.R TWB1_LAA_test /mnt/data/ai_agent/gene_analysis
@@ -175,96 +365,102 @@ Inputs:
 
 Outputs:
 
-```text
-/mnt/data/ai_agent/gene_analysis/COJO/<project_name>/table
-/mnt/data/ai_agent/gene_analysis/COJO/<project_name>/manhattan
-/mnt/data/ai_agent/gene_analysis/COJO/<project_name>/log
-```
-
-Notes:
-
-- This script uses local GTF, not live Ensembl queries
-- Missing chromosome COJO files are skipped with warnings
+- `COJO/<project_name>/table/`
+- `COJO/<project_name>/manhattan/`
+- `COJO/<project_name>/log/`
 
 ### 6. `fusion_v8_twas.sh`
 
 Purpose:
-Run FUSION TWAS using GTEx v8 models.
+Run FUSION GTEx v8 TWAS.
 
 Usage:
+
+```bash
+bash fusion_v8_twas.sh SUBJECT_NAME [BASE_DIR]
+```
+
+Parameters:
+
+- `SUBJECT_NAME`
+  Should match the project name used in FUSION GWAS folder
+- `BASE_DIR`
+  Default: `/mnt/data/ai_agent/gene_analysis`
+
+Example:
 
 ```bash
 bash fusion_v8_twas.sh TWB1_LAA_test
 ```
 
-Optional:
-
-```bash
-bash fusion_v8_twas.sh TWB1_LAA_test /mnt/data/ai_agent/gene_analysis
-```
-
 Expected input:
 
-```text
-/mnt/data/ai_agent/gene_analysis/FUSION/GWAS/<project_name>/chrN.sumstats
-```
+- `FUSION/GWAS/<project_name>/chrN.sumstats`
 
 Outputs:
 
-```text
-/mnt/data/ai_agent/gene_analysis/FUSION/result_v8/<project_name>/chrN/
-```
+- `FUSION/result_v8/<project_name>/chrN/`
 
 Logs:
 
-```text
-/mnt/data/ai_agent/gene_analysis/FUSION/result_v8/<project_name>/log/
-```
-
-Notes:
-
-- Missing chromosome sumstats are skipped
-- Log file is written and also streamed to terminal
+- `FUSION/result_v8/<project_name>/log/`
 
 ### 7. `fusion_manhattan_heatmap_cli.R`
 
 Purpose:
-Summarize FUSION results into:
-
-- merged TWAS tables
-- FDR-filtered tables
-- Manhattan plot
-- heatmap
+Summarize FUSION results into combined tables, Manhattan plot, and heatmap.
 
 Usage:
 
 ```bash
-Rscript fusion_manhattan_heatmap_cli.R TWB1_LAA_test /mnt/data/ai_agent/gene_analysis v8 0.15
+Rscript fusion_manhattan_heatmap_cli.R <project_name> [base_dir] [fusion_ver] [fdr_cutoff]
 ```
 
-Also supports:
+Named usage:
 
 ```bash
+Rscript fusion_manhattan_heatmap_cli.R --project_name <project_name> [--base_dir <base_dir>] [--fusion_ver <v7|v8>] [--fdr_cutoff <value>] [--gencode_v26_gtf <path>] [--gencode_v19_gtf <path>] [--weight_dir_v7 <path>]
+```
+
+Parameters:
+
+- `project_name`
+- `base_dir`
+  Default: `/mnt/data/ai_agent/gene_analysis`
+- `fusion_ver`
+  `v7` or `v8`
+  Default: `v8`
+- `fdr_cutoff`
+  Default: `0.15`
+- `gencode_v26_gtf`
+  Default: `/home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v26.annotation.gtf`
+- `gencode_v19_gtf`
+  Default: `/home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v19.annotation.gtf`
+- `weight_dir_v7`
+  Default: `/home/sysadmin/Desktop/dyc_lab/FUSION/WEIGHTS_v7/GTEx.ALL`
+
+Examples:
+
+```bash
+Rscript fusion_manhattan_heatmap_cli.R TWB1_LAA_test /mnt/data/ai_agent/gene_analysis v8 0.15
 Rscript fusion_manhattan_heatmap_cli.R TWB1_LAA_test /mnt/data/ai_agent/gene_analysis v7 0.15
 ```
 
 Outputs:
 
-```text
-/mnt/data/ai_agent/gene_analysis/FUSION/result_v8/<project_name>/table
-/mnt/data/ai_agent/gene_analysis/FUSION/result_v8/<project_name>/manhanttan
-/mnt/data/ai_agent/gene_analysis/FUSION/result_v8/<project_name>/heatmap
-```
+- `FUSION/result_v8/<project_name>/table/`
+- `FUSION/result_v8/<project_name>/manhanttan/`
+- `FUSION/result_v8/<project_name>/heatmap/`
 
-or for v7:
+or:
 
-```text
-/mnt/data/ai_agent/gene_analysis/FUSION/result_v7/<project_name>/
-```
+- `FUSION/result_v7/<project_name>/table/`
+- `FUSION/result_v7/<project_name>/manhanttan/`
+- `FUSION/result_v7/<project_name>/heatmap/`
 
 Notes:
 
-- Manhattan y-axis is dynamic, not fixed
+- Manhattan y-axis is dynamic
 - Extremely small P values are handled safely
 
 ### 8. `spredixcan_v8_twas.sh`
@@ -275,95 +471,116 @@ Run S-PrediXcan GTEx v8 elastic net models.
 Usage:
 
 ```bash
-bash spredixcan_v8_twas.sh TWB1_LAA_hg38
+bash spredixcan_v8_twas.sh SUBJECT_NAME [BASE_DIR]
 ```
 
-Optional:
+Parameters:
+
+- `SUBJECT_NAME`
+  Project name used in `S_PrediXcan/GWAS/<project_name>`
+- `BASE_DIR`
+  Default: `/mnt/data/ai_agent/gene_analysis`
+
+Example:
 
 ```bash
-bash spredixcan_v8_twas.sh TWB1_LAA_hg38 /mnt/data/ai_agent/gene_analysis
+bash spredixcan_v8_twas.sh TWB1_LAA_hg38
 ```
 
 Expected input:
 
-```text
-/mnt/data/ai_agent/gene_analysis/S_PrediXcan/GWAS/<project_name>/chr1tochr22.sumstats
-```
+- `S_PrediXcan/GWAS/<project_name>/chr1tochr22.sumstats`
 
 Outputs:
 
-```text
-/mnt/data/ai_agent/gene_analysis/S_PrediXcan/result_v8/<project_name>/
-```
+- `S_PrediXcan/result_v8/<project_name>/`
 
 Notes:
 
 - Uses `conda run -n metaxcan`
-- Missing tissue model files are skipped with warnings
+- Missing model files are skipped with warnings
 
 ### 9. `spredixcan_manhattan_heatmap_cli.R`
 
 Purpose:
-Summarize S-PrediXcan results into:
-
-- merged TWAS tables
-- FDR-filtered tables
-- Manhattan plot
-- heatmap
+Summarize S-PrediXcan results into combined tables, Manhattan plot, and heatmap.
 
 Usage:
 
 ```bash
-Rscript spredixcan_manhattan_heatmap_cli.R TWB2_VERTIGO /mnt/data/ai_agent/gene_analysis v8 0.15
+Rscript spredixcan_manhattan_heatmap_cli.R <project_name> [base_dir] [spredixcan_ver] [fdr_cutoff]
 ```
 
-Also supports:
+Named usage:
 
 ```bash
+Rscript spredixcan_manhattan_heatmap_cli.R --project_name <project_name> [--base_dir <base_dir>] [--spredixcan_ver <v7|v8>] [--fdr_cutoff <value>] [--gencode_v26_gtf <path>] [--gencode_v19_gtf <path>]
+```
+
+Parameters:
+
+- `project_name`
+- `base_dir`
+  Default: `/mnt/data/ai_agent/gene_analysis`
+- `spredixcan_ver`
+  `v7` or `v8`
+  Default: `v8`
+- `fdr_cutoff`
+  Default: `0.15`
+- `gencode_v26_gtf`
+  Default: `/home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v26.annotation.gtf`
+- `gencode_v19_gtf`
+  Default: `/home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v19.annotation.gtf`
+
+Examples:
+
+```bash
+Rscript spredixcan_manhattan_heatmap_cli.R TWB2_VERTIGO /mnt/data/ai_agent/gene_analysis v8 0.15
 Rscript spredixcan_manhattan_heatmap_cli.R TWB2_VERTIGO /mnt/data/ai_agent/gene_analysis v7 0.15
 ```
 
 Outputs:
 
-```text
-/mnt/data/ai_agent/gene_analysis/S_PrediXcan/result_v8/<project_name>/table
-/mnt/data/ai_agent/gene_analysis/S_PrediXcan/result_v8/<project_name>/manhanttan
-/mnt/data/ai_agent/gene_analysis/S_PrediXcan/result_v8/<project_name>/heatmap
-```
+- `S_PrediXcan/result_v8/<project_name>/table/`
+- `S_PrediXcan/result_v8/<project_name>/manhanttan/`
+- `S_PrediXcan/result_v8/<project_name>/heatmap/`
 
-or for v7:
+or:
 
-```text
-/mnt/data/ai_agent/gene_analysis/S_PrediXcan/result_v7/<project_name>/
-```
+- `S_PrediXcan/result_v7/<project_name>/table/`
+- `S_PrediXcan/result_v7/<project_name>/manhanttan/`
+- `S_PrediXcan/result_v7/<project_name>/heatmap/`
 
 Notes:
 
-- Manhattan y-axis is dynamic, not fixed
+- Manhattan y-axis is dynamic
 - Extremely small P values are handled safely
 
-## Minimal Practical Pipelines
+## Minimal Pipelines
 
-### Pipeline A: COJO only
+### COJO pipeline
 
-1. Run external GWAS
-2. Run `process_gwas_sumstats_cli.R`
-3. Run `cojo.sh`
-4. Run `cojo_annotation_manhattan_cli.R`
+1. Prepare phenotype if needed using `make_twb2_pheno_cli.R`
+2. Run external GWAS
+3. Run `process_gwas_sumstats_cli.R`
+4. Run `cojo.sh`
+5. Run `cojo_annotation_manhattan_cli.R`
 
-### Pipeline B: FUSION TWAS
+### FUSION pipeline
 
-1. Run external GWAS
-2. Run `process_gwas_sumstats_cli.R`
-3. Run `fusion_v8_twas.sh`
-4. Run `fusion_manhattan_heatmap_cli.R`
+1. Prepare phenotype if needed using `make_twb2_pheno_cli.R`
+2. Run external GWAS
+3. Run `process_gwas_sumstats_cli.R`
+4. Run `fusion_v8_twas.sh`
+5. Run `fusion_manhattan_heatmap_cli.R`
 
-### Pipeline C: S-PrediXcan TWAS
+### S-PrediXcan pipeline
 
-1. Run external GWAS
-2. Run `process_gwas_sumstats_cli.R`
-3. Run `spredixcan_v8_twas.sh`
-4. Run `spredixcan_manhattan_heatmap_cli.R`
+1. Prepare phenotype if needed using `make_twb2_pheno_cli.R`
+2. Run external GWAS
+3. Run `process_gwas_sumstats_cli.R`
+4. Run `spredixcan_v8_twas.sh`
+5. Run `spredixcan_manhattan_heatmap_cli.R`
 
 ## Current Script List
 
