@@ -143,7 +143,8 @@ Below is the main directory structure assumed by the current code.
 |  ├─spredixcan_v8_twas.sh
 └─ tools/
    └─ ensembl/
-      └─ Homo_sapiens.GRCh37.87.gtf
+      ├─ Homo_sapiens.GRCh37.87.gtf
+      └─ Homo_sapiens.GRCh38.115.gtf
 ```
 
 ## Script-by-Script Guide
@@ -336,13 +337,13 @@ Annotate COJO results with local GTF and generate tables plus GWAS Manhattan plo
 Usage:
 
 ```bash
-Rscript cojo_annotation_manhattan_cli.R <project_name> [base_dir]
+Rscript cojo_annotation_manhattan_cli.R <project_name> [base_dir] [genome_build]
 ```
 
 Named usage:
 
 ```bash
-Rscript cojo_annotation_manhattan_cli.R --project_name <project_name> [--base_dir <base_dir>]
+Rscript cojo_annotation_manhattan_cli.R --project_name <project_name> [--base_dir <base_dir>] [--genome_build <grch37|grch38>] [--gtf_file <path>]
 ```
 
 Parameters:
@@ -350,24 +351,38 @@ Parameters:
 - `project_name`
 - `base_dir`
   Default: `/mnt/data/ai_agent/gene_analysis`
+- `genome_build`
+  `grch37` or `grch38`
+  Default: `grch37`
+- `gtf_file`
+  Optional explicit GTF path
+  If omitted, the script selects a default GTF by `genome_build`
 
-Example:
+Examples:
 
 ```bash
-Rscript cojo_annotation_manhattan_cli.R TWB1_LAA_test /mnt/data/ai_agent/gene_analysis
+Rscript cojo_annotation_manhattan_cli.R TWB1_LAA_test /mnt/data/ai_agent/gene_analysis grch37
+Rscript cojo_annotation_manhattan_cli.R TWB1_LAA_test /mnt/data/ai_agent/gene_analysis grch38
+Rscript cojo_annotation_manhattan_cli.R --project_name TWB1_LAA_test --base_dir /mnt/data/ai_agent/gene_analysis --genome_build grch38
 ```
 
 Inputs:
 
 - `COJO/<project_name>/result/chrN_p1e5.jma.cojo`
 - `PLINK/imputed/glm_logistic/<project_name>/chrN.PHENO1.glm.logistic.hybrid`
-- `tools/ensembl/Homo_sapiens.GRCh37.87.gtf`
+- `tools/ensembl/Homo_sapiens.GRCh37.87.gtf` for `grch37`
+- `tools/ensembl/Homo_sapiens.GRCh38.115.gtf` for `grch38`
 
 Outputs:
 
 - `COJO/<project_name>/table/`
 - `COJO/<project_name>/manhattan/`
 - `COJO/<project_name>/log/`
+
+Notes:
+
+- Use `grch37` GTF for GRCh37/hg19-like coordinates
+- Use `grch38` GTF for GRCh38/hg38 coordinates
 
 ### 6. `fusion_v8_twas.sh`
 
