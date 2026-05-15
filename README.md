@@ -147,6 +147,157 @@ Below is the main directory structure assumed by the current code.
       └─ Homo_sapiens.GRCh38.115.gtf
 ```
 
+## Environment and Required Software
+
+The current scripts assume a Linux environment, especially for:
+
+- file paths under `/mnt/...`
+- `bash` scripts
+- `wget`
+- `conda run`
+- `gcta64`
+
+Recommended environment:
+
+- Ubuntu or compatible Linux distribution
+- `bash`
+- `Rscript`
+- `python`
+- `conda`
+
+External command-line tools required:
+
+- `PLINK` or `PLINK2`
+  Used outside this repository for GWAS
+- `gcta64`
+  Required by `cojo.sh`
+- `python` inside the `metaxcan` conda environment
+  Required by `spredixcan_v8_twas.sh`
+- `wget`
+  Useful for downloading GTF and reference files
+
+Required local reference/data resources:
+
+- `tools/ensembl/Homo_sapiens.GRCh37.87.gtf`
+- `tools/ensembl/Homo_sapiens.GRCh38.115.gtf`
+- `FUSION/WEIGHTS/`
+- `FUSION/WEIGHTS_v7/`
+- `FUSION/LDREF/`
+- `S_PrediXcan/model/GTEx_v8/elastic_net_models/`
+
+Recommended R packages used across the repository:
+
+- `data.table`
+- `dplyr`
+- `ggplot2`
+- `ggrepel`
+- `rtracklayer`
+- `stringr`
+- `tidyr`
+- `tibble`
+- `circlize`
+- `ComplexHeatmap`
+
+Some original code snippets also referenced these packages:
+
+- `RSQLite`
+- `R.utils`
+- `reshape2`
+- `qqman`
+- `biomaRt`
+- `ggvenn`
+- `tableone`
+- `broom`
+- `RColorBrewer`
+
+Not all of them are required by the current finalized CLI scripts, but they may still be useful in older notebooks or exploratory code.
+
+Minimal R install example:
+
+```r
+install.packages(c(
+  "data.table",
+  "dplyr",
+  "ggplot2",
+  "ggrepel",
+  "stringr",
+  "tidyr",
+  "tibble",
+  "circlize"
+))
+
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+
+BiocManager::install(c(
+  "rtracklayer",
+  "ComplexHeatmap"
+))
+```
+
+Conda environment note for S-PrediXcan:
+
+- `spredixcan_v8_twas.sh` currently runs:
+  `conda run -n metaxcan python ...`
+- You therefore need a conda environment named `metaxcan`
+- That environment must be able to run `SPrediXcan.py`
+
+## Citation
+
+Core software and methods:
+
+- PLINK:
+  Purcell S, et al. PLINK: a tool set for whole-genome association and population-based linkage analyses. *American Journal of Human Genetics* (2007).
+  [PubMed](https://pubmed.ncbi.nlm.nih.gov/17701901/)
+
+- PLINK 2:
+  Chang CC, et al. Second-generation PLINK: rising to the challenge of larger and richer datasets. *GigaScience* (2015).
+  [PubMed](https://pubmed.ncbi.nlm.nih.gov/25722852/)
+
+- GCTA / COJO:
+  Yang J, et al. Conditional and joint multiple-SNP analysis of GWAS summary statistics identifies additional variants influencing complex traits. *Nature Genetics* (2012).
+  [PubMed](https://pubmed.ncbi.nlm.nih.gov/22426310/)
+
+- FUSION TWAS:
+  Gusev A, et al. Integrative approaches for large-scale transcriptome-wide association studies. *Nature Genetics* (2016).
+  [PubMed](https://pubmed.ncbi.nlm.nih.gov/26854917/)
+
+- PrediXcan:
+  Gamazon ER, et al. A gene-based association method for mapping traits using reference transcriptome data. *Nature Genetics* (2015).
+  [PubMed](https://pubmed.ncbi.nlm.nih.gov/26258848/)
+
+- MetaXcan / S-PrediXcan:
+  Barbeira AN, et al. Integrating predicted transcriptome from multiple tissues improves association detection. *PLoS Genetics* (2019).
+  [PubMed](https://pubmed.ncbi.nlm.nih.gov/30694772/)
+
+Reference data and annotations:
+
+- GTEx Consortium:
+  The GTEx Consortium atlas of genetic regulatory effects across human tissues. *Science* (2020).
+  [PubMed](https://pubmed.ncbi.nlm.nih.gov/32913098/)
+
+- Ensembl:
+  Yates AD, et al. Ensembl 2020. *Nucleic Acids Research* (2020).
+  [PubMed](https://pubmed.ncbi.nlm.nih.gov/31691826/)
+
+Project websites and resources:
+
+- GCTA:
+  [Official site](https://yanglab.westlake.edu.cn/software/gcta/)
+
+- FUSION:
+  [Project page](http://gusevlab.org/projects/fusion/)
+
+- MetaXcan / S-PrediXcan:
+  [GitHub](https://github.com/hakyimlab/MetaXcan)
+
+- PredictDB GTEx models:
+  [PredictDB](https://predictdb.org/)
+
+- Ensembl FTP:
+  [FTP download page](https://www.ensembl.org/info/data/ftp/index.html)
+
 ## Script-by-Script Guide
 
 ### 1. `make_twb2_pheno_cli.R`
