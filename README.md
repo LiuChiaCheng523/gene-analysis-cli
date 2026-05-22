@@ -117,6 +117,55 @@ Important notes:
 - Most scripts will stop with an error if required input folders or files are missing.
 - `make_twb2_pheno_cli.R` uses its own separate `base_dir` because it reads from the TWB2 release bundle.
 
+## Setup Scripts And Their Order
+
+Setting up a fresh machine involves two different layers of installation, handled by
+two separate scripts. Understanding the difference avoids confusion:
+
+| Layer | Script | Installs | When to run |
+| --- | --- | --- | --- |
+| 1. Base bioinformatics tools (system level) | `setup_genomics_package.sh` | PLINK 1.9/2.0, HTSlib, Samtools, Bcftools, VCFtools, R (via rig) | Once per machine, first |
+| 2. R packages (analysis level) | `install_r_packages.sh` | System libs for compilation + CRAN + Bioconductor + plink2R | Once per machine, after R exists |
+
+- `setup_genomics_package.sh` installs the command-line tools and the R interpreter
+  itself. It does NOT install any R packages. It is idempotent (re-running skips tools
+  that are already present).
+- `install_r_packages.sh` assumes R is already installed (by step 1 or otherwise) and
+  installs the R packages the `.R` scripts need. It also installs the system libraries
+  required to compile them (including `libglpk-dev` / `libgmp-dev` for `clusterProfiler`).
+- These two are independent of the GCTA / MetaXcan external tools and of the analysis
+  directory skeleton, which are handled separately (see below).
+
+Recommended full bootstrap order on a new WSL2 / Ubuntu machine:
+
+```bash
+# Step 1: base tools + R interpreter
+bash setup_genomics_package.sh
+
+# Step 2: R packages (CRAN + Bioconductor + plink2R) and their system libraries
+bash install_r_packages.sh
+
+# Step 3: create the analysis directory skeleton
+bash setup_gene_analysis_dirs.sh /your/base_dir
+
+# Step 4: activate GCTA (after copying it into BASE_DIR/tools/gcta/)
+sudo chmod +x "/your/base_dir/tools/gcta/gcta-1.95.0-linux-kernel-3-x86_64/gcta64"
+sudo ln -sf "/your/base_dir/tools/gcta/gcta-1.95.0-linux-kernel-3-x86_64/gcta64" /usr/local/bin/gcta64
+
+# Step 5: create the MetaXcan conda environment, then pin numpy
+cd "/your/base_dir/tools/MetaXcan/software"
+conda env create -n metaxcan -f conda_env.yaml
+conda run -n metaxcan pip install "numpy==1.26.4"
+
+# Step 6: copy reference data / model weights into BASE_DIR
+#         (see "Transferring Reference Data From Windows Into WSL2")
+```
+
+Note: `setup_genomics_package.sh` is the standalone base-tools installer. If it is not
+present in this repository, obtain it from your setup bundle; everything it installs
+can also be installed manually following the commands in
+`Environment and Required Software` below.
+
 ## What To Put On GitHub vs Cloud Storage
 
 For shared use, this project is easiest to distribute in 2 layers:
