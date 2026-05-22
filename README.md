@@ -136,9 +136,29 @@ two separate scripts. Understanding the difference avoids confusion:
 - These two are independent of the GCTA / MetaXcan external tools and of the analysis
   directory skeleton, which are handled separately (see below).
 
+Note on Bioconductor packages (especially `clusterProfiler`): `install_r_packages.sh`
+compiles packages in parallel, and Bioconductor packages have deep dependency chains.
+Occasionally a package shows up as `[MISSING]` in the verification table due to a
+transient parallel-build ordering issue or a download timeout (not a real environment
+problem). If this happens, simply re-run the script (it is idempotent: already-installed
+packages are skipped). The dependencies are then already in place and the missing
+package finishes cleanly on the second pass. You can also install the single missing
+package directly, e.g.:
+
+```bash
+Rscript -e 'BiocManager::install("clusterProfiler", update=FALSE, ask=FALSE)'
+```
+
 Recommended full bootstrap order on a new WSL2 / Ubuntu machine:
 
 ```bash
+# Step 0: get the scripts (clone this repository) and make shell scripts executable
+sudo apt update && sudo apt install -y git
+cd ~
+git clone https://github.com/LiuChiaCheng523/gene-analysis-cli.git
+cd ~/gene-analysis-cli
+chmod +x *.sh
+
 # Step 1: base tools + R interpreter
 bash setup_genomics_package.sh
 
@@ -146,19 +166,40 @@ bash setup_genomics_package.sh
 bash install_r_packages.sh
 
 # Step 3: create the analysis directory skeleton
-bash setup_gene_analysis_dirs.sh /your/base_dir
+BASE_DIR=~/gene_analysis_workflow
+bash setup_gene_analysis_dirs.sh "$BASE_DIR"
 
-# Step 4: activate GCTA (after copying it into BASE_DIR/tools/gcta/)
-sudo chmod +x "/your/base_dir/tools/gcta/gcta-1.95.0-linux-kernel-3-x86_64/gcta64"
-sudo ln -sf "/your/base_dir/tools/gcta/gcta-1.95.0-linux-kernel-3-x86_64/gcta64" /usr/local/bin/gcta64
+# Step 4: copy reference data / model weights / external tools into BASE_DIR.
+#         Data must be copied BEFORE Steps 5-6, because GCTA needs its binary and
+#         MetaXcan needs conda_env.yaml to already be present.
+#         Set SRC to wherever your data bundle lives (Windows C: drive, external
+#         drive at /mnt/<letter>, etc.). See "Transferring Reference Data" below.
+SRC=/mnt/c/Users/<your_user>/Desktop/set_up_data   # adjust to your data location
+DST="$BASE_DIR"
 
-# Step 5: create the MetaXcan conda environment, then pin numpy
-cd "/your/base_dir/tools/MetaXcan/software"
+rsync -a --info=progress2 "$SRC/FUSION/fusion_twas/"          "$DST/FUSION/fusion_twas/"
+rsync -a --info=progress2 "$SRC/FUSION/LDREF/LDREF/"          "$DST/FUSION/LDREF/LDREF/"
+rsync -a --info=progress2 "$SRC/FUSION/WEIGHTS/"              "$DST/FUSION/WEIGHTS/"
+rsync -a --info=progress2 "$SRC/FUSION/WEIGHTS_v7/GTEx.ALL/"  "$DST/FUSION/WEIGHTS_v7/GTEx.ALL/"
+rsync -a --info=progress2 "$SRC/S_PrediXcan/model/"           "$DST/S_PrediXcan/model/"
+cp "$SRC/S_PrediXcan/tissues.txt" "$SRC/S_PrediXcan/tissues_v8_elastic_net.txt" "$DST/S_PrediXcan/"
+rsync -a --info=progress2 "$SRC/tools/ensembl/"              "$DST/tools/ensembl/"
+rsync -a --info=progress2 "$SRC/tools/GENCODE/"              "$DST/tools/GENCODE/"
+rsync -a --info=progress2 --exclude='__MACOSX' "$SRC/tools/gcta/"  "$DST/tools/gcta/"
+rsync -a --info=progress2 "$SRC/tools/MetaXcan/"             "$DST/tools/MetaXcan/"
+
+# Step 5: activate GCTA (now that its binary has been copied in Step 4)
+sudo chmod +x "$BASE_DIR/tools/gcta/gcta-1.95.0-linux-kernel-3-x86_64/gcta64"
+sudo ln -sf "$BASE_DIR/tools/gcta/gcta-1.95.0-linux-kernel-3-x86_64/gcta64" /usr/local/bin/gcta64
+
+# Step 6: create the MetaXcan conda environment, then pin numpy
+#         (newer conda may need: conda tos accept --override-channels --channel <url>)
+cd "$BASE_DIR/tools/MetaXcan/software"
 conda env create -n metaxcan -f conda_env.yaml
 conda run -n metaxcan pip install "numpy==1.26.4"
 
-# Step 6: copy reference data / model weights into BASE_DIR
-#         (see "Transferring Reference Data From Windows Into WSL2")
+# After Step 6 the environment is complete and the full pipeline can run
+# (COJO / FUSION / S-PrediXcan / overlap / pathway). See "Recommended Execution Order".
 ```
 
 Note: `setup_genomics_package.sh` is the standalone base-tools installer. If it is not
