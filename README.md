@@ -34,40 +34,62 @@ For a new user, the clearest setup order is:
    - `conda`
    - `wget`
    - `tar`
-3. Install external workflow tools
+   - `dos2unix` (recommended if scripts were edited/transferred from Windows)
+3. Install system libraries required to compile R packages
+   - see `System Libraries For R Packages` below
+   - critical: `libglpk-dev` and `libgmp-dev` (otherwise `clusterProfiler` fails via `igraph`)
+4. Install external workflow tools
    - `gcta64` for `cojo.sh`
    - `MetaXcan` under `BASE_DIR/tools/MetaXcan/`
-4. Install required R packages
-   - see `Minimal R install example`
-5. Choose a base directory
+5. Install required R packages
+   - recommended: run `install_r_packages.sh` (handles CRAN + Bioconductor + plink2R)
+   - or follow `Minimal R install example`
+6. Choose a base directory
    - example: `/mnt/data/ai_agent/gene_analysis`
-6. Create the folder skeleton
+7. Create the folder skeleton
    - run `setup_gene_analysis_dirs.sh`
-7. Place reference data into the expected locations
+8. Place reference data into the expected locations
    - `tools/ensembl/`
    - `FUSION/LDREF/`
    - `FUSION/WEIGHTS/`
    - `FUSION/WEIGHTS_v7/`
    - `S_PrediXcan/model/`
-8. Place project-specific GWAS inputs into the expected folders
-9. Run the workflow scripts in the order listed below
+9. Place project-specific GWAS inputs into the expected folders
+10. Run the workflow scripts in the order listed below
 
 Minimal command sequence:
 
 ```bash
 BASE_DIR=/your/base_dir
 
+# 1) Create folder skeleton (now also creates tools/gcta and tools/MetaXcan)
 bash setup_gene_analysis_dirs.sh "${BASE_DIR}"
 
+# 2) Activate GCTA (make executable + symlink into PATH)
 sudo chmod +x "${BASE_DIR}/tools/gcta/gcta-1.95.0-linux-kernel-3-x86_64/gcta64"
 sudo ln -sf "${BASE_DIR}/tools/gcta/gcta-1.95.0-linux-kernel-3-x86_64/gcta64" /usr/local/bin/gcta64
 
+# 3) Create the MetaXcan conda environment (named "metaxcan" to match the scripts)
+#    NOTE: newer conda may ask you to accept channel Terms of Service first:
+#    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+#    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 cd "${BASE_DIR}/tools/MetaXcan/software"
 conda env create -n metaxcan -f conda_env.yaml
 
-Rscript -e "install.packages(c('data.table','dplyr','ggplot2','ggrepel','stringr','tidyr','tibble','circlize','ggvenn','optparse','plink2R','KEGGREST'), repos='https://cloud.r-project.org')"
-Rscript -e "if (!requireNamespace('BiocManager', quietly=TRUE)) install.packages('BiocManager', repos='https://cloud.r-project.org'); BiocManager::install(c('rtracklayer','ComplexHeatmap','clusterProfiler','GO.db','org.Hs.eg.db','AnnotationDbi'))"
+# 4) IMPORTANT: pin numpy back to 1.26.4
+#    The pip stage (bgen-reader/cbgen) upgrades numpy to 2.x, which breaks
+#    cyvcf2/scipy with "numpy.dtype size changed" errors. Downgrade fixes it.
+#    (bgen-reader stays incompatible, but it is NOT needed for S-PrediXcan.)
+conda run -n metaxcan pip install "numpy==1.26.4"
+
+# 5) Install R packages (recommended: use the provided helper script)
+bash install_r_packages.sh
 ```
+
+Alternatively, install R packages manually (see `Minimal R install example` below).
+The helper script `install_r_packages.sh` is preferred because it also installs the
+required system libraries, installs `plink2R` from GitHub, and puts `KEGGREST` in the
+correct (Bioconductor) channel.
 
 To create the required directory skeleton, run:
 
@@ -134,6 +156,112 @@ For folders such as `FUSION/fusion_twas`, `FUSION/LDREF`, `FUSION/WEIGHTS`, and 
 - `LDREF`, `WEIGHTS`, and `WEIGHTS_v7` are better provided separately as large reference data
 
 If you package large resources for sharing, it is usually cleaner to upload only the required reference subfolders rather than the entire `FUSION/` folder, because `FUSION/GWAS/`, `FUSION/result_v7/`, and `FUSION/result_v8/` are usually user- or project-specific outputs.
+
+## Transferring Reference Data From Windows Into WSL2
+
+If your reference data and model weights currently live on Windows (for example on
+the Desktop), you can copy them into your WSL2 `BASE_DIR`. WSL automatically mounts
+the Windows `C:` drive at `/mnt/c/`.
+
+### Recommended: keep data inside the WSL filesystem
+
+Put `BASE_DIR` under your Linux home (e.g. `~/gene_analysis_workflow`), NOT under
+`/mnt/c/...`. Running PLINK / GCTA / S-PrediXcan against files on `/mnt/c/` is 5-10x
+slower because of the Windows-Linux filesystem bridge.
+
+### Set source and destination variables
+
+To save typing, define a Windows source (`SRC`) and a WSL destination (`DST`).
+These variables only exist in the current terminal session; if you open a new
+terminal, set them again.
+
+```bash
+# Windows source (note: C:\Users\you\... becomes /mnt/c/Users/you/...)
+SRC=/mnt/c/Users/<your_windows_user>/Desktop/set_up_data
+# WSL destination (your chosen BASE_DIR)
+DST=~/gene_analysis_workflow
+```
+
+### Copy folders with rsync
+
+`rsync` is preferred over `cp` for large transfers: it shows overall progress,
+can resume if interrupted, and skips files already copied.
+
+```bash
+# General form. KEEP the trailing slash on BOTH paths.
+rsync -a --info=progress2 "$SRC/<subpath>/" "$DST/<subpath>/"
+```
+
+Trailing-slash rule (important, avoids accidental nested folders):
+
+- `rsync -a SRC/folder/ DST/folder/`  -> copies the *contents* of `folder` into the
+  destination `folder`. This is what you almost always want.
+- `rsync -a SRC/folder  DST/folder/`  -> copies `folder` *itself* inside, producing
+  `DST/folder/folder/` (a nested duplicate). Avoid this.
+
+Examples used to populate this repository's expected layout:
+
+```bash
+rsync -a --info=progress2 "$SRC/FUSION/fusion_twas/"          "$DST/FUSION/fusion_twas/"
+rsync -a --info=progress2 "$SRC/FUSION/LDREF/LDREF/"          "$DST/FUSION/LDREF/LDREF/"
+rsync -a --info=progress2 "$SRC/FUSION/WEIGHTS/"              "$DST/FUSION/WEIGHTS/"
+rsync -a --info=progress2 "$SRC/FUSION/WEIGHTS_v7/GTEx.ALL/"  "$DST/FUSION/WEIGHTS_v7/GTEx.ALL/"
+rsync -a --info=progress2 "$SRC/S_PrediXcan/model/"           "$DST/S_PrediXcan/model/"
+rsync -a --info=progress2 "$SRC/tools/ensembl/"              "$DST/tools/ensembl/"
+rsync -a --info=progress2 --exclude='__MACOSX' "$SRC/tools/gcta/"     "$DST/tools/gcta/"
+rsync -a --info=progress2 "$SRC/tools/MetaXcan/"             "$DST/tools/MetaXcan/"
+```
+
+### Copy single files with cp
+
+```bash
+# The small tissue list files belong directly under S_PrediXcan/
+cp "$SRC/S_PrediXcan/tissues.txt" "$SRC/S_PrediXcan/tissues_v8_elastic_net.txt" "$DST/S_PrediXcan/"
+```
+
+### Verify a transfer
+
+```bash
+du -sh "$SRC/<subpath>/" "$DST/<subpath>/"   # sizes should be close
+ls -lh "$DST/<subpath>/"                     # spot-check files
+```
+
+### When to convert line endings (CRLF -> LF)
+
+Files created or edited on Windows often have CRLF (`\r\n`) line endings. Linux tools
+expect LF (`\n`). A stray `\r` causes errors such as
+`#!/bin/bash^M: bad interpreter: No such file or directory`.
+
+Convert ONLY plain-text files. NEVER run `dos2unix` on binary files, because it
+corrupts them.
+
+| File type | Convert with dos2unix? |
+| --- | --- |
+| `.sh`, `.R`, `.py` scripts | Yes |
+| `.txt` config / lists (e.g. `tissues.txt`) | Yes |
+| `.csv`, `.tsv`, `.ma`, `.sumstats` (text) | Usually fine to convert if edited on Windows |
+| `.bed` (PLINK binary) | NO - binary |
+| `.db` (S-PrediXcan models) | NO - binary |
+| `.RDat` / `.wgt.RDat` (FUSION weights) | NO - binary |
+| `.png` and other images | NO - binary |
+| `.gtf` (Ensembl, text but huge) | Not needed; downloaded files are already LF |
+
+```bash
+# Install dos2unix once
+sudo apt install -y dos2unix
+
+# Convert specific text files
+dos2unix "$DST/S_PrediXcan/tissues.txt" "$DST/S_PrediXcan/tissues_v8_elastic_net.txt"
+
+# Convert all scripts in a folder (text only - safe because the folder has no binaries)
+find "$DST/scripts" -type f \( -name '*.sh' -o -name '*.R' -o -name '*.txt' \) -exec dos2unix {} \;
+
+# After converting, give shell scripts execute permission
+chmod +x "$DST"/scripts/*.sh
+```
+
+Tip: to check whether a file has CRLF, run `file <path>`. Output containing
+`CRLF line terminators` means it should be converted; plain `ASCII text` is already LF.
 
 ## Overall Workflow
 
@@ -370,12 +498,22 @@ BASE_DIR=/your/base_dir
 sudo chmod +x "${BASE_DIR}/tools/gcta/gcta-1.95.0-linux-kernel-3-x86_64/gcta64"
 sudo ln -sf "${BASE_DIR}/tools/gcta/gcta-1.95.0-linux-kernel-3-x86_64/gcta64" /usr/local/bin/gcta64
 
+# Newer conda (>=26) may require accepting channel Terms of Service first:
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+
 cd "${BASE_DIR}/tools/MetaXcan/software"
 conda env create -n metaxcan -f conda_env.yaml
+
+# REQUIRED post-install fix: pin numpy back to 1.26.4
+# The pip stage (bgen-reader/cbgen) pulls numpy 2.x, which breaks cyvcf2/scipy
+# binary compatibility ("numpy.dtype size changed"). This restores a working env.
+conda run -n metaxcan pip install "numpy==1.26.4"
 
 which gcta64
 gcta64 --help
 conda run -n metaxcan python "${BASE_DIR}/tools/MetaXcan/software/SPrediXcan.py" --help
+conda run -n metaxcan python -c "import pandas, scipy, numpy, h5py, cyvcf2; print('metaxcan core OK', numpy.__version__)"
 ```
 
 Notes:
@@ -383,6 +521,9 @@ Notes:
 - These commands assume users have already copied or downloaded the official `gcta` and `MetaXcan` packages into `BASE_DIR/tools/`.
 - `cojo.sh` expects `gcta64` to be available in `PATH`.
 - `spredixcan_v7_twas.sh` and `spredixcan_v8_twas.sh` expect a conda environment named `metaxcan`.
+- The bundled `conda_env.yaml` declares `name: imlabtools`; passing `-n metaxcan` overrides it so the environment name matches what the scripts call (`conda run -n metaxcan`).
+- The numpy downgrade leaves `bgen-reader`/`cbgen` in a broken state (they want numpy >= 2.0), but these are only needed for BGEN genotype input and are NOT used by the S-PrediXcan summary-statistics workflow in this repository.
+- `gcta64` does not support `--version`; running it prints the version banner before reporting that the option is invalid, which still confirms it works.
 
 Required local reference/data resources:
 
@@ -459,10 +600,46 @@ Some original code snippets also referenced these packages:
 
 Not all of them are required by the current finalized CLI scripts, but they may still be useful in older notebooks or exploratory code. The package list above covers the current formal workflow scripts in this repository.
 
-Minimal R install example:
+### System Libraries For R Packages
+
+Several R packages compile from source and need system libraries. On Ubuntu/WSL2,
+install these BEFORE installing the R packages:
+
+```bash
+sudo apt update
+sudo apt install -y \
+  libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev \
+  libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev \
+  libcurl4-openssl-dev libssl-dev libgit2-dev gfortran \
+  libglpk-dev libgmp-dev cmake make g++
+```
+
+- `libglpk-dev` and `libgmp-dev` are required by `igraph`, a dependency of
+  `clusterProfiler`. Without them, `clusterProfiler` installation fails.
+- `libgit2-dev` is needed to install `plink2R` from GitHub via `remotes`.
+- The `lib*-dev` graphics libraries are needed by `ggplot2`/`ComplexHeatmap` backends.
+
+### Recommended: one-shot R package installer
+
+The repository includes `install_r_packages.sh`, which installs the system
+libraries above, all CRAN packages, `plink2R` (from GitHub), and all Bioconductor
+packages. It is idempotent (already-installed packages are skipped):
+
+```bash
+bash install_r_packages.sh
+```
+
+### Minimal R install example (manual)
+
+Note two corrections compared to a naive package list:
+
+- `plink2R` is NOT on CRAN; install it from GitHub.
+- `KEGGREST` is a Bioconductor package, NOT a CRAN package.
 
 ```r
+# CRAN packages
 install.packages(c(
+  "remotes",
   "data.table",
   "dplyr",
   "ggplot2",
@@ -472,13 +649,15 @@ install.packages(c(
   "tibble",
   "circlize",
   "ggvenn",
-  "optparse",
-  "plink2R",
-  "KEGGREST"
-))
+  "optparse"
+), repos = "https://cloud.r-project.org")
 
+# plink2R (FUSION dependency) — from GitHub, not CRAN
+remotes::install_github("gabraham/plink2R/plink2R", upgrade = "never")
+
+# Bioconductor packages (KEGGREST belongs here, not in CRAN)
 if (!requireNamespace("BiocManager", quietly = TRUE)) {
-  install.packages("BiocManager")
+  install.packages("BiocManager", repos = "https://cloud.r-project.org")
 }
 
 BiocManager::install(c(
@@ -487,8 +666,9 @@ BiocManager::install(c(
   "clusterProfiler",
   "GO.db",
   "org.Hs.eg.db",
-  "AnnotationDbi"
-))
+  "AnnotationDbi",
+  "KEGGREST"
+), update = FALSE, ask = FALSE)
 ```
 
 Conda environment note for S-PrediXcan:
@@ -983,11 +1163,11 @@ Parameters:
 - `fdr_cutoff`
   Default: `0.15`
 - `gencode_v26_gtf`
-  Default: `/home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v26.annotation.gtf`
+  Default: `<base_dir>/tools/GENCODE/gencode.v26.annotation.gtf`
 - `gencode_v19_gtf`
-  Default: `/home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v19.annotation.gtf`
+  Default: `<base_dir>/tools/GENCODE/gencode.v19.annotation.gtf`
 - `weight_dir_v7`
-  Default: `/home/sysadmin/Desktop/dyc_lab/FUSION/WEIGHTS_v7/GTEx.ALL`
+  Default: `<base_dir>/FUSION/WEIGHTS_v7/GTEx.ALL`
 
 Examples:
 
@@ -1078,9 +1258,9 @@ Parameters:
 - `fdr_cutoff`
   Default: `0.15`
 - `gencode_v26_gtf`
-  Default: `/home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v26.annotation.gtf`
+  Default: `<base_dir>/tools/GENCODE/gencode.v26.annotation.gtf`
 - `gencode_v19_gtf`
-  Default: `/home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v19.annotation.gtf`
+  Default: `<base_dir>/tools/GENCODE/gencode.v19.annotation.gtf`
 
 Examples:
 
