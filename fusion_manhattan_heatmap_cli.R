@@ -12,9 +12,9 @@ usage <- function() {
       "  base_dir          Base directory. Default: /mnt/data/ai_agent/gene_analysis\n",
       "  fusion_ver        FUSION version. Default: v8\n",
       "  fdr_cutoff        FDR cutoff. Default: 0.15\n",
-      "  gencode_v26_gtf   Default: /home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v26.annotation.gtf\n",
-      "  gencode_v19_gtf   Default: /home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v19.annotation.gtf\n",
-      "  weight_dir_v7     Default: /home/sysadmin/Desktop/dyc_lab/FUSION/WEIGHTS_v7/GTEx.ALL\n\n",
+      "  gencode_v26_gtf   Default: <base_dir>/tools/GENCODE/gencode.v26.annotation.gtf\n",
+      "  gencode_v19_gtf   Default: <base_dir>/tools/GENCODE/gencode.v19.annotation.gtf\n",
+      "  weight_dir_v7     Default: <base_dir>/FUSION/WEIGHTS_v7/GTEx.ALL\n\n",
       "Example:\n",
       "  Rscript fusion_manhattan_heatmap_cli.R TWB1_LAA_test1 /mnt/data/ai_agent/gene_analysis v8 0.15\n"
     )
@@ -27,9 +27,9 @@ parse_args <- function(args) {
     base_dir = "/mnt/data/ai_agent/gene_analysis",
     fusion_ver = "v8",
     fdr_cutoff = 0.15,
-    gencode_v26_gtf = "/home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v26.annotation.gtf",
-    gencode_v19_gtf = "/home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v19.annotation.gtf",
-    weight_dir_v7 = "/home/sysadmin/Desktop/dyc_lab/FUSION/WEIGHTS_v7/GTEx.ALL"
+    gencode_v26_gtf = NA_character_,
+    gencode_v19_gtf = NA_character_,
+    weight_dir_v7 = NA_character_
   )
 
   if (length(args) == 0 || any(args %in% c("-h", "--help"))) {
@@ -113,12 +113,27 @@ gencode_v26_gtf <- args$gencode_v26_gtf
 gencode_v19_gtf <- args$gencode_v19_gtf
 weight_dir <- args$weight_dir_v7
 
+# If not explicitly provided, default paths relative to base_dir
+if (is.na(gencode_v26_gtf) || gencode_v26_gtf == "") {
+  gencode_v26_gtf <- file.path(base_dir, "tools/GENCODE/gencode.v26.annotation.gtf")
+}
+if (is.na(gencode_v19_gtf) || gencode_v19_gtf == "") {
+  gencode_v19_gtf <- file.path(base_dir, "tools/GENCODE/gencode.v19.annotation.gtf")
+}
+if (is.na(weight_dir) || weight_dir == "") {
+  weight_dir <- file.path(base_dir, "FUSION/WEIGHTS_v7/GTEx.ALL")
+}
+
 if (!fusion_ver %in% c("v7", "v8")) {
   stop("fusion_ver must be either 'v7' or 'v8'.", call. = FALSE)
 }
 
 if (is.na(FDR_cutoff)) {
   stop("fdr_cutoff must be numeric.", call. = FALSE)
+}
+
+if (!dir.exists(base_dir)) {
+  stop("base_dir not found: ", base_dir, call. = FALSE)
 }
 
 fusion_result_v8_folder <- file.path(base_dir, "FUSION/result_v8", project_name)
@@ -146,6 +161,14 @@ if (!file.exists(gencode_v19_gtf)) {
 
 if (!dir.exists(weight_dir)) {
   stop("weight_dir_v7 not found: ", weight_dir, call. = FALSE)
+}
+
+if (fusion_ver == "v8" && !dir.exists(fusion_result_v8_folder)) {
+  stop("FUSION v8 result folder not found: ", fusion_result_v8_folder, call. = FALSE)
+}
+
+if (fusion_ver == "v7" && !dir.exists(fusion_result_v7_folder)) {
+  stop("FUSION v7 result folder not found: ", fusion_result_v7_folder, call. = FALSE)
 }
 
 # load gencode database -----
@@ -197,7 +220,12 @@ if (fusion_ver == "v8") {
   dir.create(fusion_result_v8_manhanttan_output_folder, recursive = TRUE, showWarnings = FALSE)
   dir.create(fusion_result_v8_heatmap_output_folder, recursive = TRUE, showWarnings = FALSE)
   
-  FU_v8_tissue <- fread(file.path(base_dir, "FUSION/WEIGHTS/tissue_list.txt"), header = FALSE)
+  fusion_v8_tissue_file <- file.path(base_dir, "FUSION/WEIGHTS/tissue_list.txt")
+  if (!file.exists(fusion_v8_tissue_file)) {
+    stop("FUSION v8 tissue list not found: ", fusion_v8_tissue_file, call. = FALSE)
+  }
+
+  FU_v8_tissue <- fread(fusion_v8_tissue_file, header = FALSE)
   FU_v8_tissue_list <- FU_v8_tissue$V1
 
   FU_v8 <- data.frame()
@@ -433,7 +461,12 @@ if (fusion_ver == "v8") {
   dir.create(fusion_result_v7_manhanttan_output_folder, recursive = TRUE, showWarnings = FALSE)
   dir.create(fusion_result_v7_heatmap_output_folder, recursive = TRUE, showWarnings = FALSE)
   
-  FU_v7_tissue <- fread(file.path(base_dir, "FUSION/WEIGHTS_v7/GTEx.ALL/tissue_list_v7.txt"), header = FALSE)
+  fusion_v7_tissue_file <- file.path(base_dir, "FUSION/WEIGHTS_v7/GTEx.ALL/tissue_list_v7.txt")
+  if (!file.exists(fusion_v7_tissue_file)) {
+    stop("FUSION v7 tissue list not found: ", fusion_v7_tissue_file, call. = FALSE)
+  }
+
+  FU_v7_tissue <- fread(fusion_v7_tissue_file, header = FALSE)
   FU_v7_tissue_list <- FU_v7_tissue$V1
 
   FU_v7 <- data.frame()

@@ -12,8 +12,8 @@ usage <- function() {
       "  base_dir          Base directory. Default: /mnt/data/ai_agent/gene_analysis\n",
       "  spredixcan_ver    S-PrediXcan version. Default: v8\n",
       "  fdr_cutoff        FDR cutoff. Default: 0.15\n",
-      "  gencode_v26_gtf   Default: /home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v26.annotation.gtf\n",
-      "  gencode_v19_gtf   Default: /home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v19.annotation.gtf\n\n",
+      "  gencode_v26_gtf   Default: <base_dir>/tools/GENCODE/gencode.v26.annotation.gtf\n",
+      "  gencode_v19_gtf   Default: <base_dir>/tools/GENCODE/gencode.v19.annotation.gtf\n\n",
       "Example:\n",
       "  Rscript spredixcan_manhattan_heatmap_cli.R TWB1_LAA_test1 /mnt/data/ai_agent/gene_analysis v8 0.15\n"
     )
@@ -26,8 +26,8 @@ parse_args <- function(args) {
     base_dir = "/mnt/data/ai_agent/gene_analysis",
     spredixcan_ver = "v8",
     fdr_cutoff = 0.15,
-    gencode_v26_gtf = "/home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v26.annotation.gtf",
-    gencode_v19_gtf = "/home/sysadmin/Desktop/dyc_lab/TWB1_stroke_raw_data/GENCODE/gencode.v19.annotation.gtf"
+    gencode_v26_gtf = NA_character_,
+    gencode_v19_gtf = NA_character_
   )
 
   if (length(args) == 0 || any(args %in% c("-h", "--help"))) {
@@ -105,12 +105,24 @@ FDR_cutoff <- as.numeric(args$fdr_cutoff)
 gencode_v26_gtf <- args$gencode_v26_gtf
 gencode_v19_gtf <- args$gencode_v19_gtf
 
+# If not explicitly provided, default GENCODE GTFs to base_dir/tools/GENCODE/
+if (is.na(gencode_v26_gtf) || gencode_v26_gtf == "") {
+  gencode_v26_gtf <- file.path(base_dir, "tools/GENCODE/gencode.v26.annotation.gtf")
+}
+if (is.na(gencode_v19_gtf) || gencode_v19_gtf == "") {
+  gencode_v19_gtf <- file.path(base_dir, "tools/GENCODE/gencode.v19.annotation.gtf")
+}
+
 if (!spredixcan_ver %in% c("v7", "v8")) {
   stop("spredixcan_ver must be either 'v7' or 'v8'.", call. = FALSE)
 }
 
 if (is.na(FDR_cutoff)) {
   stop("fdr_cutoff must be numeric.", call. = FALSE)
+}
+
+if (!dir.exists(base_dir)) {
+  stop("base_dir not found: ", base_dir, call. = FALSE)
 }
 
 spredixcan_result_v8_folder <- file.path(base_dir, "S_PrediXcan/result_v8", project_name)
@@ -122,6 +134,14 @@ spredixcan_result_v8_manhanttan_output_folder <- file.path(spredixcan_result_v8_
 spredixcan_result_v7_manhanttan_output_folder <- file.path(spredixcan_result_v7_folder, "manhanttan")
 spredixcan_result_v8_heatmap_output_folder <- file.path(spredixcan_result_v8_folder, "heatmap")
 spredixcan_result_v7_heatmap_output_folder <- file.path(spredixcan_result_v7_folder, "heatmap")
+
+if (spredixcan_ver == "v8" && !dir.exists(spredixcan_result_v8_folder)) {
+  stop("S-PrediXcan v8 result folder not found: ", spredixcan_result_v8_folder, call. = FALSE)
+}
+
+if (spredixcan_ver == "v7" && !dir.exists(spredixcan_result_v7_folder)) {
+  stop("S-PrediXcan v7 result folder not found: ", spredixcan_result_v7_folder, call. = FALSE)
+}
 
 message("Project name: ", project_name)
 message("Base dir: ", base_dir)
@@ -168,7 +188,12 @@ if (spredixcan_ver == "v8") {
   dir.create(spredixcan_result_v8_manhanttan_output_folder, recursive = TRUE, showWarnings = FALSE)
   dir.create(spredixcan_result_v8_heatmap_output_folder, recursive = TRUE, showWarnings = FALSE)
 
-  SP_v8_tissue <- fread(file.path(base_dir, "S_PrediXcan/tissues_v8_elastic_net.txt"), header = FALSE)
+  spredixcan_v8_tissue_file <- file.path(base_dir, "S_PrediXcan/tissues_v8_elastic_net.txt")
+  if (!file.exists(spredixcan_v8_tissue_file)) {
+    stop("S-PrediXcan v8 tissue list not found: ", spredixcan_v8_tissue_file, call. = FALSE)
+  }
+
+  SP_v8_tissue <- fread(spredixcan_v8_tissue_file, header = FALSE)
   SP_v8_tissue_list <- SP_v8_tissue$V1
 
   SP_v8 <- data.frame()
@@ -396,7 +421,12 @@ if (spredixcan_ver == "v8") {
   dir.create(spredixcan_result_v7_manhanttan_output_folder, recursive = TRUE, showWarnings = FALSE)
   dir.create(spredixcan_result_v7_heatmap_output_folder, recursive = TRUE, showWarnings = FALSE)
 
-  SP_v7_tissue <- fread(file.path(base_dir, "S_PrediXcan/tissues.txt"), header = FALSE)
+  spredixcan_v7_tissue_file <- file.path(base_dir, "S_PrediXcan/tissues.txt")
+  if (!file.exists(spredixcan_v7_tissue_file)) {
+    stop("S-PrediXcan v7 tissue list not found: ", spredixcan_v7_tissue_file, call. = FALSE)
+  }
+
+  SP_v7_tissue <- fread(spredixcan_v7_tissue_file, header = FALSE)
   SP_v7_tissue_list <- SP_v7_tissue$V1
 
   SP_v7 <- data.frame()

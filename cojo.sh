@@ -41,10 +41,25 @@ P_CUTOFF=$3
 WINDOW=$4
 BASE_DIR=${5:-/mnt/data/ai_agent/gene_analysis}
 
+if [[ ! -d "${BASE_DIR}" ]]; then
+  echo "ERROR: base_dir not found: ${BASE_DIR}"
+  exit 1
+fi
+
 PLINK_INPUT_DIR="${BASE_DIR}/PLINK/imputed/plink_binary_files/${PROJECT_NAME}"
 COJO_INPUT_DIR="${BASE_DIR}/COJO/${PROJECT_NAME}"
 COJO_RESULT_DIR="${BASE_DIR}/COJO/${PROJECT_NAME}/result"
 COJO_LOG_DIR="${COJO_RESULT_DIR}/log"
+
+if [[ ! -d "${PLINK_INPUT_DIR}" ]]; then
+  echo "ERROR: PLINK input directory not found: ${PLINK_INPUT_DIR}"
+  exit 1
+fi
+
+if [[ ! -d "${COJO_INPUT_DIR}" ]]; then
+  echo "ERROR: COJO input directory not found: ${COJO_INPUT_DIR}"
+  exit 1
+fi
 
 mkdir -p "${COJO_RESULT_DIR}"
 mkdir -p "${COJO_LOG_DIR}"

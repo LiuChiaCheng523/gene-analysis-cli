@@ -35,11 +35,16 @@ fi
 SUBJECT_NAME=$1
 BASE_DIR=${2:-/mnt/data/ai_agent/gene_analysis}
 
+if [[ ! -d "${BASE_DIR}" ]]; then
+  echo "ERROR: base_dir not found: ${BASE_DIR}"
+  exit 1
+fi
+
 SPREDIXCAN_V8_GWAS_FILE="${BASE_DIR}/S_PrediXcan/GWAS/${SUBJECT_NAME}/chr1tochr22.sumstats"
 SPREDIXCAN_V8_TISSUE_FILE="${BASE_DIR}/S_PrediXcan/tissues_v8_elastic_net.txt"
 SPREDIXCAN_V8_MODEL_DIR="${BASE_DIR}/S_PrediXcan/model/GTEx_v8/elastic_net_models"
 SPREDIXCAN_V8_OUT_DIR="${BASE_DIR}/S_PrediXcan/result_v8/${SUBJECT_NAME}"
-SPREDIXCAN_V8_SCRIPT="/home/sysadmin/Desktop/tools/MetaXcan/software/SPrediXcan.py"
+SPREDIXCAN_V8_SCRIPT="${BASE_DIR}/tools/MetaXcan/software/SPrediXcan.py"
 
 mkdir -p "${SPREDIXCAN_V8_OUT_DIR}"
 

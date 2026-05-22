@@ -67,11 +67,19 @@ args <- parse_args(commandArgs(trailingOnly = TRUE))
 project_name <- args$project_name
 base_dir <- args$base_dir
 
+if (!dir.exists(base_dir)) {
+  stop("base_dir not found: ", base_dir, call. = FALSE)
+}
+
 glm_logistic_input_folder <- file.path(base_dir, "PLINK/imputed/glm_logistic", project_name)
 cojo_output_folder <- file.path(base_dir, "COJO", project_name)
 fusion_output_folder <- file.path(base_dir, "FUSION/GWAS", project_name)
 spredixcan_output_folder <- file.path(base_dir, "S_PrediXcan/GWAS", project_name)
 log_folder <- file.path(fusion_output_folder, "log")
+
+if (!dir.exists(glm_logistic_input_folder)) {
+  stop("GWAS input folder not found: ", glm_logistic_input_folder, call. = FALSE)
+}
 
 dir.create(cojo_output_folder, recursive = TRUE, showWarnings = FALSE)
 dir.create(fusion_output_folder, recursive = TRUE, showWarnings = FALSE)

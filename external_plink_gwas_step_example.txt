@@ -1,3 +1,4 @@
+
 cd /mnt/SP-siliconpower/TWB20250806download/Imputed.120161.TWB2/imputed_120161 
 
 wc -l TWB2_VERTIGO_pheno.txt

@@ -30,6 +30,11 @@ fi
 SUBJECT_NAME=$1
 
 BASE_DIR=${2:-/mnt/data/ai_agent/gene_analysis}
+if [[ ! -d "${BASE_DIR}" ]]; then
+  echo "ERROR: base_dir not found: ${BASE_DIR}"
+  exit 1
+fi
+
 FUSION_V8_GWAS_DIR=${BASE_DIR}/FUSION/GWAS/${SUBJECT_NAME}
 FUSION_V8_WEIGHT_DIR=${BASE_DIR}/FUSION/WEIGHTS
 FUSION_V8_LDREF=${BASE_DIR}/FUSION/LDREF/LDREF/1000G.EUR.
@@ -40,6 +45,26 @@ FUSION_V8_SCRIPT=${BASE_DIR}/FUSION/fusion_twas/FUSION.assoc_test.R
 
 mkdir -p "${FUSION_V8_OUT_DIR}"
 mkdir -p "${FUSION_V8_LOG_DIR}"
+
+if [[ ! -d "${FUSION_V8_GWAS_DIR}" ]]; then
+  echo "ERROR: FUSION GWAS directory not found: ${FUSION_V8_GWAS_DIR}"
+  exit 1
+fi
+
+if [[ ! -d "${FUSION_V8_WEIGHT_DIR}" ]]; then
+  echo "ERROR: FUSION weight directory not found: ${FUSION_V8_WEIGHT_DIR}"
+  exit 1
+fi
+
+if [[ ! -f "${FUSION_V8_TISSUE_LIST}" ]]; then
+  echo "ERROR: FUSION tissue list not found: ${FUSION_V8_TISSUE_LIST}"
+  exit 1
+fi
+
+if [[ ! -f "${FUSION_V8_SCRIPT}" ]]; then
+  echo "ERROR: FUSION.assoc_test.R not found: ${FUSION_V8_SCRIPT}"
+  exit 1
+fi
 
 LOG_FILE=${FUSION_V8_LOG_DIR}/log_$(date +"%Y%m%d_%H%M%S").txt
 exec > >(tee -a "${LOG_FILE}") 2>&1
