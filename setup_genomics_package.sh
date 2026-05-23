@@ -11,6 +11,7 @@
 #   - Bcftools 1.21
 #   - VCFtools (apt)
 #   - R 4.5.1 (via rig, R Installation Manager)
+#   - Miniconda (latest, installed to ~/miniconda3)
 #
 # Usage:
 #   chmod +x setup-genomics.sh
@@ -65,7 +66,7 @@ START_TIME=$(date +%s)
 # ============================================================
 # Step 1: System update & build dependencies
 # ============================================================
-section "Step 1/7  System update & build dependencies"
+section "Step 1/8  System update & build dependencies"
 
 sudo apt update
 sudo apt upgrade -y
@@ -83,7 +84,7 @@ log_success "Build dependencies installed"
 # ============================================================
 # Step 2: PLINK 1.9
 # ============================================================
-section "Step 2/7  PLINK 1.9"
+section "Step 2/8  PLINK 1.9"
 
 if check_cmd plink; then
     log_warn "plink already installed: $(plink --version 2>&1 | head -1)"
@@ -99,7 +100,7 @@ fi
 # ============================================================
 # Step 3: PLINK 2.0
 # ============================================================
-section "Step 3/7  PLINK 2.0"
+section "Step 3/8  PLINK 2.0"
 
 if check_cmd plink2; then
     log_warn "plink2 already installed: $(plink2 --version 2>&1 | head -1)"
@@ -115,7 +116,7 @@ fi
 # ============================================================
 # Step 4: HTSlib
 # ============================================================
-section "Step 4/7  HTSlib ${HTSLIB_VERSION}"
+section "Step 4/8  HTSlib ${HTSLIB_VERSION}"
 
 if check_cmd tabix && tabix --version 2>&1 | grep -q "${HTSLIB_VERSION}"; then
     log_warn "HTSlib ${HTSLIB_VERSION} already installed"
@@ -133,7 +134,7 @@ fi
 # ============================================================
 # Step 5: Samtools
 # ============================================================
-section "Step 5/7  Samtools ${SAMTOOLS_VERSION}"
+section "Step 5/8  Samtools ${SAMTOOLS_VERSION}"
 
 if check_cmd samtools && samtools --version 2>&1 | head -1 | grep -q "${SAMTOOLS_VERSION}"; then
     log_warn "Samtools ${SAMTOOLS_VERSION} already installed"
@@ -151,7 +152,7 @@ fi
 # ============================================================
 # Step 6: Bcftools
 # ============================================================
-section "Step 6/7  Bcftools ${BCFTOOLS_VERSION}"
+section "Step 6/8  Bcftools ${BCFTOOLS_VERSION}"
 
 if check_cmd bcftools && bcftools --version 2>&1 | head -1 | grep -q "${BCFTOOLS_VERSION}"; then
     log_warn "Bcftools ${BCFTOOLS_VERSION} already installed"
@@ -172,7 +173,7 @@ sudo ldconfig
 # ============================================================
 # Step 7: R via rig
 # ============================================================
-section "Step 7/7  R ${R_VERSION} (via rig)"
+section "Step 7/8  R ${R_VERSION} (via rig)"
 
 if ! check_cmd rig; then
     log_info "Installing rig (R Installation Manager)..."
@@ -196,6 +197,30 @@ log_info "Configuring user R library..."
 rig system setup-user-lib
 
 # ============================================================
+# Step 8: Miniconda
+# ============================================================
+section "Step 8/8  Miniconda (latest, installed to ~/miniconda3)"
+
+MINICONDA_DIR="${HOME}/miniconda3"
+if check_cmd conda; then
+    log_warn "conda already on PATH: $(conda --version)"
+elif [[ -x "${MINICONDA_DIR}/bin/conda" ]]; then
+    log_warn "Miniconda found at ${MINICONDA_DIR} but not on PATH in this shell."
+    log_warn "Run: source ~/.bashrc   (or open a new terminal) to use 'conda'."
+else
+    log_info "Downloading Miniconda installer..."
+    cd /tmp
+    wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda_installer.sh
+    log_info "Installing Miniconda to ${MINICONDA_DIR}..."
+    bash miniconda_installer.sh -b -p "${MINICONDA_DIR}"
+    log_info "Initializing conda for bash (writes to ~/.bashrc)..."
+    "${MINICONDA_DIR}/bin/conda" init bash > /dev/null
+    log_success "Miniconda installed: $("${MINICONDA_DIR}/bin/conda" --version)"
+    log_warn "conda is NOT on PATH in this shell yet."
+    log_warn "Run 'source ~/.bashrc' or open a new terminal before using 'conda'."
+fi
+
+# ============================================================
 # Final verification
 # ============================================================
 section "Verification"
@@ -210,12 +235,16 @@ printf "  %-10s : " "tabix"    ; tabix   --version 2>&1 | head -1
 printf "  %-10s : " "bgzip"    ; bgzip   --version 2>&1 | head -1
 printf "  %-10s : " "R"        ; R       --version 2>&1 | head -1
 printf "  %-10s : " "Rscript"  ; Rscript --version 2>&1
+printf "  %-10s : " "conda"    ; \
+    if check_cmd conda; then conda --version; \
+    elif [[ -x "${HOME}/miniconda3/bin/conda" ]]; then "${HOME}/miniconda3/bin/conda" --version; \
+    else echo "MISSING"; fi
 
 # ---------- Cleanup ----------
 log_info "Cleaning up /tmp build files..."
 cd ~
 rm -rf /tmp/plink1_pkg /tmp/plink2_pkg /tmp/htslib-* /tmp/samtools-* /tmp/bcftools-*
-rm -f  /tmp/plink_linux_*.zip /tmp/plink2_linux_*.zip /tmp/htslib-*.tar.bz2 /tmp/samtools-*.tar.bz2 /tmp/bcftools-*.tar.bz2
+rm -f  /tmp/plink_linux_*.zip /tmp/plink2_linux_*.zip /tmp/htslib-*.tar.bz2 /tmp/samtools-*.tar.bz2 /tmp/bcftools-*.tar.bz2 /tmp/miniconda_installer.sh
 
 END_TIME=$(date +%s)
 ELAPSED=$((END_TIME - START_TIME))
@@ -226,11 +255,14 @@ log_success "  All tools installed successfully!"
 log_success "  Elapsed: $((ELAPSED / 60))m $((ELAPSED % 60))s"
 log_success "==========================================="
 echo ""
-echo "Next steps (optional):"
+echo "Next steps:"
 echo ""
-echo "  # Install common R packages for genomics:"
-echo "  Rscript -e 'install.packages(c(\"data.table\",\"qqman\",\"ggplot2\",\"dplyr\"), repos=\"https://cloud.r-project.org\")'"
+echo "  # 1) Reload your shell so 'conda' becomes available (only needed once after Miniconda install):"
+echo "  source ~/.bashrc"
 echo ""
-echo "  # Create standard working directories:"
-echo "  mkdir -p ~/projects ~/data ~/scripts"
+echo "  # 2) Install R packages used by this pipeline:"
+echo "  bash install_r_packages.sh"
+echo ""
+echo "  # 3) Create the analysis directory skeleton and continue with README bootstrap Step 4+:"
+echo "  bash setup_gene_analysis_dirs.sh ~/gene_analysis_workflow"
 echo ""
