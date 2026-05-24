@@ -382,7 +382,7 @@ For Step2 External PLINK GWAS (written next to the input `.fam`). For `categoric
 
 ### 2. External PLINK GWAS (out of scope)
 
-Run GWAS outside this repository, typically using PLINK logistic (`--glm allow-no-covarsor`).
+Run GWAS outside this repository, typically using PLINK2 `--glm allow-no-covarsor`.
 
 Place your project's GWAS results into the `glm_logistic` and `plink_binary_files` folders, respectively:
 
@@ -403,18 +403,23 @@ Rscript process_gwas_sumstats_cli.R \
   --base_dir <base_dir>
 ```
 
-Inputs: `PLINK/imputed/glm_logistic/<project>/chrN.PHENO1.glm.logistic.hybrid`
+Rscript will read:
 
-Outputs:
-- `COJO/<project>/chrN.cojo.ma` (COJO input, per chromosome)
-- `FUSION/GWAS/<project>/chrN.sumstats`
-- `S_PrediXcan/GWAS/<project>/chr1tochr22.sumstats` (single concatenated file)
+`<base_dir>/PLINK/imputed/glm_logistic/<project>/chrN.PHENO1.glm.logistic.hybrid`
+
+Output files:
+- `<base_dir>/COJO/<project>/chrN.cojo.ma` (COJO input, per chromosome)
+- `<base_dir>/FUSION/GWAS/<project>/chrN.sumstats`
+- `<base_dir>/S_PrediXcan/GWAS/<project>/chr1tochr22.sumstats` (single concatenated file)
 
 ### 4. `cojo.sh` — GCTA-COJO
 
 ```bash
-bash cojo.sh PROJECT_NAME PLINK_FILE_PATTERN P_CUTOFF WINDOW [BASE_DIR]
-# example: bash cojo.sh TWB1_LAA _DR2_0.7_QCFiltered 1e-6 10000
+bash cojo.sh <PROJECT_NAME> <PLINK_FILE_PATTERN> <P_CUTOFF> <WINDOW> <BASE_DIR>
+```
+example:
+```bash
+bash cojo.sh TWB1_LAA _QC 1e-5 10000 /mnt/data/ai_agent/gene_analysis
 ```
 
 | Argument | Notes |
@@ -423,8 +428,14 @@ bash cojo.sh PROJECT_NAME PLINK_FILE_PATTERN P_CUTOFF WINDOW [BASE_DIR]
 | `P_CUTOFF` | COJO p-value cutoff, e.g. `1e-6` |
 | `WINDOW` | COJO window size (in bp), e.g. `10000` |
 
-Inputs: PLINK binary files and `COJO/<project>/chrN.cojo.ma`.
-Outputs: `COJO/<project>/result/chrN_p<TAG>.*` (`.jma.cojo`, `.cma.cojo`, etc.).
+Scripts will read: 
+
+- PLINK binary files: `<BASE_DIR>/PLINK/imputed/plink_binary_files/<PROJECT_NAME>/chrN<PLINK_FILE_PATTERN>.{bed,bim,fam}`
+- .cojo.ma files: `<BASE_DIR>/COJO/<PROJECT_NAME>/chrN.cojo.ma`
+
+Output files:
+
+`COJO/<project>/result/chrN_p<TAG>.*` (`.jma.cojo`, `.cma.cojo`, etc.).
 Terminal summary lists completed / missing chromosomes.
 
 ### 5. `cojo_annotation_manhattan_cli.R` — annotate COJO + Manhattan plot
