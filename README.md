@@ -445,8 +445,13 @@ Sister script `fusion_v7_twas.sh` runs the v7 weights (`WEIGHTS_v7/GTEx.ALL/`).
 
 ```bash
 Rscript fusion_manhattan_heatmap_cli.R <project> [base_dir] [v7|v8] [fdr_cutoff]
-# named: --project_name --base_dir --fusion_ver --fdr_cutoff
-#        --gencode_v26_gtf --gencode_v19_gtf --weight_dir_v7
+
+Rscript fusion_manhattan_heatmap_cli.R  \
+  --project_name <project> \
+  --base_dir [base_dir] \
+  --fusion_ver [v7|v8] \
+  --fdr_cutoff [fdr_cutoff]
+
 ```
 
 | Argument | Default |
@@ -462,7 +467,7 @@ Outputs in `FUSION/result_v{7,8}/<project>/{table,manhanttan,heatmap}/`.
 ### 8. `spredixcan_v8_twas.sh` — S-PrediXcan GTEx v8
 
 ```bash
-bash spredixcan_v8_twas.sh SUBJECT_NAME [BASE_DIR]
+bash spredixcan_v8_twas.sh <SUBJECT_NAME> [BASE_DIR]
 ```
 
 Uses `conda run -n metaxcan`. Reads
@@ -490,10 +495,17 @@ Rscript overlap_venn_cli.R \
     --project_name_cojo <name|None> \
     --project_name_overlap <name> \
     --base_dir <dir> \
-    [--ver v7|v8|all] [--twas_method fusion|spredixcan|all] \
-    [--fdr_cutoff 0.15] [--cojo_p_cutoff 1e-6]
+    --ver [v7|v8|all] \
+    --twas_method [fusion|spredixcan|all] \
+    --fdr_cutoff \
+    --cojo_p_cutoff 
 ```
+| Argument | Default |
+| --- | --- |
+| `fdr_cutoff` | `0.15` |
+| `cojo_p_cutoff` | `1e-6` |
 
+```
 Reads `FUSION/result_v{7,8}/<project>/table/FUSION_v{7,8}_TWAS.csv`,
 `S_PrediXcan/result_v{7,8}/<project>/table/SPrediXcan_v{7,8}_TWAS.csv`, and
 `COJO/<project>/table/p1e{5,05}_annotation_genes.csv`.
