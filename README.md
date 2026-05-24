@@ -378,11 +378,11 @@ Outputs files:
 -`TWB2_<var_name>_pheno.txt`
 -`TWB2_<var_name>_keep.txt`
 
-For step2 External PLINK GWAS (written next to the input `.fam`). For `categorical`, coding is `1 = control`,`2 = case`.
+For Step2 External PLINK GWAS (written next to the input `.fam`). For `categorical`, coding is `1 = control`,`2 = case`.
 
 ### 2. External PLINK GWAS (out of scope)
 
-Run GWAS outside this repository, typically using PLINK logistic or linear regression.
+Run GWAS outside this repository, typically using PLINK logistic ('--glm allow-no-covarsor').
 
 Place your project's GWAS results into the `glm_logistic` and `plink_binary_files` folders, respectively:
 
