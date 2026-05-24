@@ -331,11 +331,11 @@ phenotype prep  →  external PLINK GWAS  →  process_gwas_sumstats_cli.R
 Genome build alignment — the GWAS sumstats coordinate system must match the
 model's coordinate system:
 
-| Analysis | Coordinate system | GWAS sumstats to use |
-| --- | --- | --- |
-| COJO | matches your GWAS | typically hg19 (GRCh37) |
-| FUSION v8 / S-PrediXcan v8 | GRCh38 / hg38 | hg38 sumstats |
-| FUSION v7 / S-PrediXcan v7 | GRCh37 / hg19 | hg19 sumstats |
+| Analysis | Coordinate system |
+| --- | --- |
+| COJO | matches your GWAS |
+| FUSION v8 / S-PrediXcan v8 | GRCh38 / hg38 |
+| FUSION v7 / S-PrediXcan v7 | GRCh37 / hg19 |
 
 ---
 
@@ -351,8 +351,11 @@ Create TWB2 phenotype + keep files for downstream PLINK GWAS.
 ```bash
 Rscript make_twb2_pheno_cli.R <var_name> <var_type> [case_label] [control_label]
 # or named:
-Rscript make_twb2_pheno_cli.R --var_name <name> --var_type <categorical|continuous> \
-    [--case_label <v>] [--control_label <v>]
+Rscript make_twb2_pheno_cli.R
+  --var_name <name> \
+  --var_type <categorical|continuous> \
+ [--case_label <v>] \
+ [--control_label <v>]
 ```
 
 | Argument | Notes |
