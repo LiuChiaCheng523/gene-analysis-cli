@@ -341,8 +341,9 @@ model's coordinate system:
 
 ## CLI Script Reference
 
-Default `base_dir` for every script is `/mnt/data/ai_agent/gene_analysis`; pass
-your actual `BASE_DIR` (e.g. `~/gene_analysis_workflow`) as an argument.
+Default `base_dir` for every script is `/mnt/data/ai_agent/gene_analysis`.
+
+Replace `BASE_DIR` with your actual project root directory (e.g., `~/gene_analysis_workflow`).
 
 ### 1. `make_twb2_pheno_cli.R` — phenotype preparation
 
