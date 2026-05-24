@@ -382,10 +382,11 @@ For step2 External PLINK GWAS (written next to the input `.fam`). For `categoric
 
 ### 2. External PLINK GWAS (out of scope)
 
-Run GWAS outside this repository, typically with PLINK logistic / linear
-regression, and place outputs as:
+Run GWAS outside this repository, typically using PLINK logistic or linear regression.
 
-```
+Place your project's GWAS results into the `glm_logistic` and `plink_binary_files` folders, respectively:
+
+```bash
 PLINK/imputed/glm_logistic/<project>/chrN.PHENO1.glm.logistic.hybrid
 PLINK/imputed/plink_binary_files/<project>/chrN<PATTERN>.{bed,bim,fam}
 ```
@@ -394,7 +395,12 @@ PLINK/imputed/plink_binary_files/<project>/chrN<PATTERN>.{bed,bim,fam}
 
 ```bash
 Rscript process_gwas_sumstats_cli.R <project> [base_dir]
-# or named: --project_name --base_dir
+```
+or
+```bash
+Rscript process_gwas_sumstats_cli.R \
+  --project_name <project> \
+  --base_dir <base_dir>
 ```
 
 Inputs: `PLINK/imputed/glm_logistic/<project>/chrN.PHENO1.glm.logistic.hybrid`
