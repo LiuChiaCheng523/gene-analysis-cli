@@ -350,7 +350,7 @@ Replace `BASE_DIR` with your actual project root directory (e.g., `~/gene_analys
 Create TWB2 phenotype + keep files for downstream PLINK GWAS.
 
 ```bash
-Rscript make_twb2_pheno_cli.R <var_name> <var_type> [case_label] [control_label]
+Rscript make_twb2_pheno_cli.R <var_name> <var_type> <case_label> <control_label>
 ```
 or
 ```bash
@@ -369,9 +369,9 @@ Rscript make_twb2_pheno_cli.R \
 
 Rscript will read Inputs: 
 
--`survey/release_list_*.{txt,csv}`
--`lab_info/lab_info.csv`
--`Imputed.120161.TWB2/imputed_120161/TWB2.hg38.impu.v4.fam`
+- `survey/release_list_*.{txt,csv}`
+- `lab_info/lab_info.csv`
+- `Imputed.120161.TWB2/imputed_120161/TWB2.hg38.impu.v4.fam`
 
 Outputs files: 
 
