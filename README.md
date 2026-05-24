@@ -351,12 +351,14 @@ Create TWB2 phenotype + keep files for downstream PLINK GWAS.
 
 ```bash
 Rscript make_twb2_pheno_cli.R <var_name> <var_type> [case_label] [control_label]
-# or named:
-Rscript make_twb2_pheno_cli.R
+```
+or
+```bash
+Rscript make_twb2_pheno_cli.R \
   --var_name <name> \
   --var_type <categorical|continuous> \
- [--case_label <v>] \
- [--control_label <v>]
+  --case_label <v>] \
+  --control_label <v>]
 ```
 
 | Argument | Notes |
@@ -365,13 +367,18 @@ Rscript make_twb2_pheno_cli.R
 | `var_type` | `categorical` or `continuous` |
 | `case_label` / `control_label` | Required only for `categorical` |
 
-Inputs (TWB2 release bundle, not `BASE_DIR`):
-`survey/release_list_*.{txt,csv}`, `lab_info/lab_info.csv`,
-`Imputed.120161.TWB2/imputed_120161/TWB2.hg38.impu.v4.fam`
+Rscript will read Inputs: 
 
-Outputs: `TWB2_<var_name>_pheno.txt`, `TWB2_<var_name>_keep.txt`
-(written next to the input `.fam`). For `categorical`, coding is `1 = control`,
-`2 = case`.
+-`survey/release_list_*.{txt,csv}`
+-`lab_info/lab_info.csv`
+-`Imputed.120161.TWB2/imputed_120161/TWB2.hg38.impu.v4.fam`
+
+Outputs files: 
+
+-`TWB2_<var_name>_pheno.txt`
+-`TWB2_<var_name>_keep.txt`
+
+For step2 External PLINK GWAS (written next to the input `.fam`). For `categorical`, coding is `1 = control`,`2 = case`.
 
 ### 2. External PLINK GWAS (out of scope)
 
