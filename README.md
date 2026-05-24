@@ -491,12 +491,19 @@ Outputs in `FUSION/result_v{7,8}/<project>/{table,manhanttan,heatmap}/`.
 ### 8. `spredixcan_v8_twas.sh` — S-PrediXcan GTEx v8
 
 ```bash
-bash spredixcan_v8_twas.sh <SUBJECT_NAME> [BASE_DIR]
+bash spredixcan_v8_twas.sh <SUBJECT_NAME> <BASE_DIR>
 ```
 
-Uses `conda run -n metaxcan`. Reads
-`S_PrediXcan/GWAS/<project>/chr1tochr22.sumstats` and the v8 elastic-net models;
-writes per-tissue CSVs to `S_PrediXcan/result_v8/<project>/`. Sister script
+Uses `conda run -n metaxcan`. 
+
+Scripts will read:
+- `<BASE_DIR>/S_PrediXcan/GWAS/<project>/chr1tochr22.sumstats`
+-  v8 elastic-net model
+
+Output files:
+- writes per-tissue CSVs to `<BASE_DIR>/S_PrediXcan/result_v8/<project>/`.
+
+Sister script:
 `spredixcan_v7_twas.sh` runs the v7 models.
 
 ### 9. `spredixcan_manhattan_heatmap_cli.R` — S-PrediXcan tables + plots
