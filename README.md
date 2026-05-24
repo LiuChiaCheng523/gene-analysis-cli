@@ -505,7 +505,6 @@ Rscript overlap_venn_cli.R \
 | `fdr_cutoff` | `0.15` |
 | `cojo_p_cutoff` | `1e-6` |
 
-```
 Reads `FUSION/result_v{7,8}/<project>/table/FUSION_v{7,8}_TWAS.csv`,
 `S_PrediXcan/result_v{7,8}/<project>/table/SPrediXcan_v{7,8}_TWAS.csv`, and
 `COJO/<project>/table/p1e{5,05}_annotation_genes.csv`.
@@ -519,7 +518,7 @@ Outputs in `overlap/<project_overlap>/`:
 table is currently named `p1e5_annotation_genes.csv` regardless of the COJO
 p-value cutoff actually used, so pass `--cojo_p_cutoff 1e-5` to pick it up.
 
-```
+
 ### 11. `pathway_enrichment_cli.R` — GO BP + KEGG ORA
 
 ```bash
