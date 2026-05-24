@@ -382,7 +382,7 @@ For Step2 External PLINK GWAS (written next to the input `.fam`). For `categoric
 
 ### 2. External PLINK GWAS (out of scope)
 
-Run GWAS outside this repository, typically using PLINK logistic ('--glm allow-no-covarsor').
+Run GWAS outside this repository, typically using PLINK logistic (`--glm allow-no-covarsor`).
 
 Place your project's GWAS results into the `glm_logistic` and `plink_binary_files` folders, respectively:
 
