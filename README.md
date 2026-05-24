@@ -607,26 +607,7 @@ Rscript pathway_enrichment_cli.R <P> "$BASE_DIR" 0.2
 | FUSION only | `fusion_v8_twas.sh` → `fusion_manhattan_heatmap_cli.R` |
 | S-PrediXcan only | `spredixcan_v8_twas.sh` → `spredixcan_manhattan_heatmap_cli.R` |
 
----
-
-## Troubleshooting
-
-| Symptom | Cause and fix |
-| --- | --- |
-| `clusterProfiler` shows `[MISSING]` after `install_r_packages.sh` | Transient parallel-build ordering. Re-run the script (idempotent), or `Rscript -e 'BiocManager::install("clusterProfiler", update=FALSE, ask=FALSE)'`. |
-| `clusterProfiler` fails citing `igraph` | `libglpk-dev` / `libgmp-dev` missing. `install_r_packages.sh` installs them — re-run it. |
-| `conda env create` asks to accept ToS | New conda (>=26). Pre-accept: `conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main` (and `/pkgs/r`). |
-| `cyvcf2` / scipy import error: `numpy.dtype size changed, may indicate binary incompatibility` | The pip stage upgraded numpy to 2.x. Pin it back: `conda run -n metaxcan pip install "numpy==1.26.4"`. |
-| pip warns `cbgen 1.0.6 requires numpy<3.0,>=2.0` after pinning numpy | Expected. `bgen-reader`/`cbgen` is unused by the S-PrediXcan summary-stats workflow; warning can be ignored. |
-| `overlap_venn_cli.R` warns "File not found for COJO" | Cutoff tag mismatch. The COJO table is named `p1e5_annotation_genes.csv`; pass `--cojo_p_cutoff 1e-5` to match. |
-| `setup_genomics_package.sh` finishes but `conda: command not found` | Miniconda init only takes effect in a new shell. Run `source ~/.bashrc` or open a new terminal. |
-| `#!/bin/bash^M: bad interpreter` when running a `.sh` | CRLF line endings from Windows. Run `dos2unix script.sh && chmod +x script.sh`. |
-| `gcta64 --version` prints version banner then "invalid option" | Expected — GCTA has no `--version` flag. The banner confirms it works. |
-| FUSION reports `had mean GWAS Z-score imputation r2 of 0.6…, skipping this gene` | FUSION's built-in QC filter, not an error. |
-| Pipeline only produces results for one chromosome | The example data ships only chr2; warnings about missing `chr1/3..22` inputs are expected. |
-
----
-
+```
 ## Citation
 
 If you use this workflow, cite the underlying methods and resources, not only
