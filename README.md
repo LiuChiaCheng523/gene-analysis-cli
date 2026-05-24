@@ -519,6 +519,7 @@ Outputs in `overlap/<project_overlap>/`:
 table is currently named `p1e5_annotation_genes.csv` regardless of the COJO
 p-value cutoff actually used, so pass `--cojo_p_cutoff 1e-5` to pick it up.
 
+```
 ### 11. `pathway_enrichment_cli.R` — GO BP + KEGG ORA
 
 ```bash
