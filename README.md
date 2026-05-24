@@ -523,16 +523,20 @@ p-value cutoff actually used, so pass `--cojo_p_cutoff 1e-5` to pick it up.
 
 ```bash
 Rscript pathway_enrichment_cli.R <project_overlap> [base_dir] [fdr_cutoff]
-or
+#or
 Rscript pathway_enrichment_cli.R \
   --project_name_overlap <project_overlap>
   --base_dir [base_dir] \
   --fdr_cutoff [fdr_cutoff] 
 ```
 
-Rscript will reads `<[base_dir>/overlap/<project_overlap>/overlap_gene_name_pairwise_union.csv` as candidates genes 
-and `<[base_dir>/overlap/<project_overlap>/twas_detected_gene_name.csv` (universe).
+Rscript will read:
+
+- `<[base_dir>/overlap/<project_overlap>/overlap_gene_name_pairwise_union.csv>` as candidate genes
+- `<[base_dir>/overlap/<project_overlap>/twas_detected_gene_name.csv>` as universe genes
+
 Outputs files:
+
 - `<[base_dir>/pathway/GOBP/<project_overlap>/*_GOBP_ORA_FDRxx.{png,csv}`
 - `<[base_dir>/pathway/KEGG/<project_overlap>/*_KEGG_ORA_FDRxx.{png,csv}`
 - `<[base_dir>/pathway/log/<project_overlap>/process_log_*.txt`
