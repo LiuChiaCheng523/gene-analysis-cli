@@ -607,7 +607,6 @@ Rscript pathway_enrichment_cli.R <P> "$BASE_DIR" 0.2
 | FUSION only | `fusion_v8_twas.sh` → `fusion_manhattan_heatmap_cli.R` |
 | S-PrediXcan only | `spredixcan_v8_twas.sh` → `spredixcan_manhattan_heatmap_cli.R` |
 
-```
 ## Citation
 
 If you use this workflow, cite the underlying methods and resources, not only
