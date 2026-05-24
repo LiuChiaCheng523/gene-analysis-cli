@@ -429,13 +429,12 @@ bash cojo.sh TWB1_LAA _QC 1e-5 10000 /mnt/data/ai_agent/gene_analysis
 | `WINDOW` | COJO window size (in bp), e.g. `10000` |
 
 Scripts will read: 
-
 - PLINK binary files: `<BASE_DIR>/PLINK/imputed/plink_binary_files/<PROJECT_NAME>/chrN<PLINK_FILE_PATTERN>.{bed,bim,fam}`
 - .cojo.ma files: `<BASE_DIR>/COJO/<PROJECT_NAME>/chrN.cojo.ma`
 
 Output files:
-
-`COJO/<project>/result/chrN_p<TAG>.*` (`.jma.cojo`, `.cma.cojo`, etc.).
+- `COJO/<project>/result/chrN_p<TAG>.*` (`.jma.cojo`, `.cma.cojo`, etc.).
+  
 Terminal summary lists completed / missing chromosomes.
 
 ### 5. `cojo_annotation_manhattan_cli.R` — annotate COJO + Manhattan plot
