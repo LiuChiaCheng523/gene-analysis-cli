@@ -519,29 +519,32 @@ table is currently named `p1e5_annotation_genes.csv` regardless of the COJO
 p-value cutoff actually used, so pass `--cojo_p_cutoff 1e-5` to pick it up.
 
 
-### 11. `pathway_enrichment_cli.R` — GO BP + KEGG ORA
+### 11. `pathway_enrichment_cli.R` — GO:BP + KEGG
 
 ```bash
 Rscript pathway_enrichment_cli.R <project_overlap> [base_dir] [fdr_cutoff]
-#or
+```
+or
+```bash
 Rscript pathway_enrichment_cli.R \
-  --project_name_overlap <project_overlap>
+  --project_name_overlap <project_overlap> \
   --base_dir [base_dir] \
   --fdr_cutoff [fdr_cutoff] 
 ```
 
 Rscript will read:
 
-- `<[base_dir>/overlap/<project_overlap>/overlap_gene_name_pairwise_union.csv>` as candidate genes
-- `<[base_dir>/overlap/<project_overlap>/twas_detected_gene_name.csv>` as universe genes
+- `<base_dir>/overlap/<project_overlap>/overlap_gene_name_pairwise_union.csv` as candidate genes
+- `<base_dir>/overlap/<project_overlap>/twas_detected_gene_name.csv` as universe genes
 
 Outputs files:
 
-- `<[base_dir>/pathway/GOBP/<project_overlap>/*_GOBP_ORA_FDRxx.{png,csv}`
-- `<[base_dir>/pathway/KEGG/<project_overlap>/*_KEGG_ORA_FDRxx.{png,csv}`
-- `<[base_dir>/pathway/log/<project_overlap>/process_log_*.txt`
+- `<base_dir>/pathway/GOBP/<project_overlap>/*_GOBP_ORA_FDRxx.{png,csv}`
+- `<base_dir>/pathway/KEGG/<project_overlap>/*_KEGG_ORA_FDRxx.{png,csv}`
+- `<base_dir>/pathway/log/<project_overlap>/process_log_*.txt`
 
 GO uses `enrichGO(ont="BP")`; KEGG uses `enrichKEGG(organism="hsa")` (needsnetwork access). 
+
 Empty enrichment results are handled safely (no plot written, empty summary CSV).
 
 ### Helper scripts (not part of the analysis chain)
