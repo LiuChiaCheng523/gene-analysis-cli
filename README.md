@@ -521,11 +521,11 @@ Outputs in `S_PrediXcan/result_v{7,8}/<project>/{table,manhanttan,heatmap}/`.
 
 ```bash
 Rscript overlap_venn_cli.R \
-    --project_name_v7 <name|None> \
-    --project_name_v8 <name|None> \
-    --project_name_cojo <name|None> \
-    --project_name_overlap <name> \
-    --base_dir <dir> \
+    --project_name_v7 <project_name_in_result_v7|None> \
+    --project_name_v8 <project_name_in_result_v8|None> \
+    --project_name_cojo <project_name_in_cojo|None> \
+    --project_name_overlap <new_folder_name> \
+    --base_dir <base_dir_path> \
     --ver [v7|v8|all] \
     --twas_method [fusion|spredixcan|all] \
     --fdr_cutoff \
@@ -554,15 +554,20 @@ p-value cutoff actually used, so pass `--cojo_p_cutoff 1e-5` to pick it up.
 
 
 ```bash
-Rscript pathway_enrichment_cli.R <project_overlap> [base_dir] [fdr_cutoff]
-# named: --project_name_overlap --base_dir --fdr_cutoff
-#        --gobp_fdr_cutoff --kegg_fdr_cutoff
-#        --gene_file --universe_file
+Rscript pathway_enrichment_cli.R \
+    --project_name_overlap <project_overlap> \
+    --base_dir <base_dir> \
+    --gene_file <gene_file_path>\
+    --universe_file <universe_file_path>\
+    --gobp_fdr_cutoff <cutoff_of_GOBP>\
+    --kegg_fdr_cutoff <cutoff_of_KEGG>\
+    
 ```
 
-Reads `overlap/<project_overlap>/overlap_gene_name_pairwise_union.csv`
-(candidates) and `twas_detected_gene_name.csv` (universe) by default.
-
+Rscript will reads:
+- `<base_dir>/overlap/<project_overlap>/<gene_file_path>` as candidate genes
+- `<base_dir>/overlap/<project_overlap>/<universe_file_path>` as universe genes by default.
+- `<base_dir>/overlap/<project_overlap>/twas_detected_gene_name.csv` by `--universe_file` default
 **`--gene_file` and `--universe_file`** accept either a **bare filename**
 (resolved under `overlap/<project_overlap>/`) or a **full path** (used as-is).
 Both files **must contain a column named `gene_name`**; the script extracts
