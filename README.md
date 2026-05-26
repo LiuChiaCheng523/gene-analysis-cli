@@ -558,9 +558,9 @@ Rscript pathway_enrichment_cli.R <project_overlap> [base_dir] [fdr_cutoff]
 or
 ```bash
 Rscript pathway_enrichment_cli.R \
-  --project_name_overlap <project_overlap> \
-  --base_dir [base_dir] \
-  --fdr_cutoff [fdr_cutoff] 
+  --project_name_overlap <project name in overlap folder> \
+  --base_dir <base direction path> \
+  --fdr_cutoff <fdr cutoff> 
 ```
 
 Rscript will read:
@@ -588,13 +588,11 @@ genes by location.
 
 ```bash
 Rscript gene_position_from_gencode_cli.R \
-    --project_name <name> \
-    --base_dir \
-    --gene_file \
-    --version
+    --project_name <project name in overlap folder> \
+    --base_dir <base direction path>\
+    --gene_file <any gene list file full path>\
+    --version [v26|v19]
 ```
-
-All arguments are named:
 
 | Argument | Notes |
 | --- | --- |
@@ -608,8 +606,7 @@ Rscript will reads:
 
 Output files:
 
-- `<gene_file basename>_with_position.csv` in the same folder as
-- `gene_file`, with columns `ensembl_gene_id_clean, gene_name, chr, start, end,gene_type`.
+- `<gene_file basename>_with_position.csv` in the same folder as `gene_file`, with columns `ensembl_gene_id_clean, gene_name, chr, start, end,gene_type`.
 -  The final log line reports how many genes were matched vs unmatched.
 
 ```bash
