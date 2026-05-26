@@ -587,35 +587,43 @@ appended. Useful for downstream visualisation, manuscript tables, or filtering
 genes by location.
 
 ```bash
-Rscript gene_position_from_gencode_cli.R --project_name <name> [options]
+Rscript gene_position_from_gencode_cli.R \
+    --project_name <name> \
+    --base_dir \
+    --gene_file \
+    --version
 ```
 
 All arguments are named:
 
-| Argument | Default |
+| Argument | Notes |
 | --- | --- |
 | `--project_name` | (required) overlap project name, used to locate the default `gene_file` |
-| `--base_dir` | `/mnt/data/ai_agent/gene_analysis` |
-| `--gene_file` | `<base_dir>/overlap/<project_name>/overlap_gene_name_pairwise_union.csv` |
+| `--gene_file` | Which genes do you want to find the coordinates of? |
 | `--version` | `v26` (use `v19` for GRCh37 / hg19, `v26` for GRCh38 / hg38) |
 
-Reads:
+Rscript will reads:
 - `--gene_file` (must contain columns `ensembl_gene_id_clean` and `gene_name`)
 - `<base_dir>/tools/GENCODE/gencode.v{19,26}.annotation.gtf`
 
-Output: `<gene_file basename>_with_position.csv` in the same folder as
-`gene_file`, with columns `ensembl_gene_id_clean, gene_name, chr, start, end,
-gene_type`. The final log line reports how many genes were matched vs unmatched.
+Output files:
+
+- `<gene_file basename>_with_position.csv` in the same folder as
+- `gene_file`, with columns `ensembl_gene_id_clean, gene_name, chr, start, end,gene_type`.
+-  The final log line reports how many genes were matched vs unmatched.
 
 ```bash
 # Default: annotate the pairwise-union overlap file with GRCh38 positions
-Rscript gene_position_from_gencode_cli.R --project_name TWB1_LAA \
+Rscript gene_position_from_gencode_cli.R \
+    --project_name TWB1_LAA \
     --base_dir ~/gene_analysis_workflow
 
 # Annotate a different gene list with GRCh37 positions
-Rscript gene_position_from_gencode_cli.R --project_name TWB1_LAA \
+Rscript gene_position_from_gencode_cli.R \
+    --project_name TWB1_LAA \
     --base_dir ~/gene_analysis_workflow \
-    --gene_file coloc_mr_pass_gene.csv --version v19
+    --gene_file coloc_mr_pass_gene.csv \
+    --version v19
 ```
 
 ### Helper scripts (not part of the analysis chain)
