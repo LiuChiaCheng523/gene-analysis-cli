@@ -557,17 +557,18 @@ p-value cutoff actually used, so pass `--cojo_p_cutoff 1e-5` to pick it up.
 Rscript pathway_enrichment_cli.R \
     --project_name_overlap <project_overlap> \
     --base_dir <base_dir> \
-    --gene_file <gene_file_path>\
-    --universe_file <universe_file_path>\
-    --gobp_fdr_cutoff <cutoff_of_GOBP>\
-    --kegg_fdr_cutoff <cutoff_of_KEGG>\
+    --gene_file <gene_file_path> \
+    --universe_file <universe_file_path> \
+    --gobp_fdr_cutoff <cutoff_of_GOBP> \
+    --kegg_fdr_cutoff <cutoff_of_KEGG>
     
 ```
 
 Rscript will reads:
 - `<base_dir>/overlap/<project_overlap>/<gene_file_path>` as candidate genes
 - `<base_dir>/overlap/<project_overlap>/<universe_file_path>` as universe genes by default.
-- `<base_dir>/overlap/<project_overlap>/twas_detected_gene_name.csv` by `--universe_file` default
+- `--universe_file` (default: `<base_dir>/overlap/<project_overlap>/twas_detected_gene_name.csv`)
+
 **`--gene_file` and `--universe_file`** accept either a **bare filename**
 (resolved under `overlap/<project_overlap>/`) or a **full path** (used as-is).
 Both files **must contain a column named `gene_name`**; the script extracts
