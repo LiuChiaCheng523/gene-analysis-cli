@@ -645,38 +645,58 @@ Rscript gene_position_from_gencode_cli.R \
 Replace `<P>` with your project name. Pass the project name that matches the
 input genome build (v8 ⇒ hg38, v7 ⇒ hg19).
 
-### Full pipeline (single project, all three branches)
+### Full pipeline example (single project, all three branches)
 
 ```bash
 BASE_DIR=~/gene_analysis_workflow
-cd ~/gene-analysis-cli   # or your scripts folder
+cd ~/gene_analysis_workflow/scripts
 
 # 1. Convert PLINK GWAS to downstream formats
-Rscript process_gwas_sumstats_cli.R <P> "$BASE_DIR"
+Rscript process_gwas_sumstats_cli.R example "$BASE_DIR"
+Rscript process_gwas_sumstats_cli.R example_hg38 "$BASE_DIR"
 
 # 2. COJO branch
-bash cojo.sh <P> _QC 1e-6 10000 "$BASE_DIR"
-Rscript cojo_annotation_manhattan_cli.R <P> "$BASE_DIR" grch37
+bash cojo.sh example _QC 1e-5 10000 "$BASE_DIR"
+Rscript cojo_annotation_manhattan_cli.R example "$BASE_DIR" grch37
 
-# 3. FUSION v8 branch
-bash fusion_v8_twas.sh <P_hg38> "$BASE_DIR"
-Rscript fusion_manhattan_heatmap_cli.R <P_hg38> "$BASE_DIR" v8 0.15
+# 3. FUSION v8 & v7 branch
+bash fusion_v8_twas.sh example_hg38 "$BASE_DIR"
+Rscript fusion_manhattan_heatmap_cli.R example_hg38 "$BASE_DIR" v8 0.2
 
-# 4. S-PrediXcan v8 branch
-bash spredixcan_v8_twas.sh <P_hg38> "$BASE_DIR"
-Rscript spredixcan_manhattan_heatmap_cli.R <P_hg38> "$BASE_DIR" v8 0.15
+bash fusion_v7_twas.sh example "$BASE_DIR"
+Rscript fusion_manhattan_heatmap_cli.R example "$BASE_DIR" v7 0.2
+
+# 4. S-PrediXcan v8 & v7 branch
+bash spredixcan_v8_twas.sh example_hg38 "$BASE_DIR"
+Rscript spredixcan_manhattan_heatmap_cli.R example_hg38 "$BASE_DIR" v8 0.2
+
+bash spredixcan_v7_twas.sh example "$BASE_DIR"
+Rscript spredixcan_manhattan_heatmap_cli.R example "$BASE_DIR" v7 0.2
 
 # 5. Overlap (need at least two of: COJO, FUSION TWAS, S-PrediXcan)
 Rscript overlap_venn_cli.R \
-    --project_name_cojo <P> \
-    --project_name_v8 <P_hg38> \
-    --project_name_overlap <P> \
-    --base_dir "$BASE_DIR" \
-    --ver v8 --twas_method all \
-    --fdr_cutoff 0.2 --cojo_p_cutoff 1e-5
+  --project_name_v8 example_hg38 \
+  --project_name_cojo example \
+  --project_name_overlap example \
+  --base_dir "$BASE_DIR" \
+  --ver v8 --twas_method all \
+  --fdr_cutoff 0.2 \
+  --cojo_p_cutoff 1e-5
 
 # 6. Pathway enrichment from overlap
-Rscript pathway_enrichment_cli.R <P> "$BASE_DIR" 0.2
+Rscript pathway_enrichment_cli.R \
+  --project_name_overlap example1 \
+  --base_dir "$BASE_DIR" \
+  --gene_file coloc_mr_pass_gene.csv \
+  --gobp_fdr_cutoff 0.05 \
+  --kegg_fdr_cutoff 0.1
+
+# 7. Find gene position
+Rscript gene_position_from_gencode_cli.R \
+  --project_name example \
+  --base_dir "$BASE_DIR" \
+  --gene_file "$BASE_DIR"/overlap/example/overlap_gene_name_pairwise_union.csv \
+  --version v26
 ```
 
 ### Single branch only
