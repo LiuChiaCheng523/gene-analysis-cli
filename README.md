@@ -605,7 +605,7 @@ Rscript gene_position_from_gencode_cli.R \
 | `--version` | `v26` (use `v19` for GRCh37 / hg19, `v26` for GRCh38 / hg38) |
 
 Rscript will reads:
-- `--gene_file` (must contain columns `ensembl_gene_id_clean` and `gene_name`)
+- `<gene_file_full_path>` (must contain columns `ensembl_gene_id_clean` and `gene_name`)
 - `<base_dir>/tools/GENCODE/gencode.v{19,26}.annotation.gtf`
 
 Output files:
