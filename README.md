@@ -552,16 +552,26 @@ p-value cutoff actually used, so pass `--cojo_p_cutoff 1e-5` to pick it up.
 
 ### 11. `pathway_enrichment_cli.R` — GO:BP + KEGG
 
+
 ```bash
 Rscript pathway_enrichment_cli.R <project_overlap> [base_dir] [fdr_cutoff]
+# named: --project_name_overlap --base_dir --fdr_cutoff
+#        --gobp_fdr_cutoff --kegg_fdr_cutoff
+#        --gene_file --universe_file
 ```
-or
-```bash
-Rscript pathway_enrichment_cli.R \
-  --project_name_overlap <project name in overlap folder> \
-  --base_dir <base direction path> \
-  --fdr_cutoff <fdr cutoff> 
-```
+
+Reads `overlap/<project_overlap>/overlap_gene_name_pairwise_union.csv`
+(candidates) and `twas_detected_gene_name.csv` (universe) by default.
+
+**`--gene_file` and `--universe_file`** accept either a **bare filename**
+(resolved under `overlap/<project_overlap>/`) or a **full path** (used as-is).
+Both files **must contain a column named `gene_name`**; the script extracts
+unique non-empty values from that column as the candidate / universe sets.
+
+**`--gobp_fdr_cutoff` and `--kegg_fdr_cutoff`** let you tag GOBP and KEGG output
+files with different cutoffs (e.g. when GOBP has many enriched terms but KEGG
+has very few). If omitted, both inherit from `--fdr_cutoff`. These values affect
+only the output filenames (`*_GOBP_ORA_FDR<gobp>*` and `*_KEGG_ORA_FDR<kegg>*`).
 
 Rscript will read:
 
@@ -588,9 +598,9 @@ genes by location.
 
 ```bash
 Rscript gene_position_from_gencode_cli.R \
-    --project_name <project name in overlap folder> \
-    --base_dir <base direction path>\
-    --gene_file <any gene list file full path>\
+    --project_name <project_name_in_overlap_folder> \
+    --base_dir <base_direction_path>\
+    --gene_file <gene_file_full_path>\
     --version [v26|v19]
 ```
 
