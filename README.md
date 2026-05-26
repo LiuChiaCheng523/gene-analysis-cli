@@ -357,8 +357,8 @@ or
 Rscript make_twb2_pheno_cli.R \
   --var_name <name> \
   --var_type <categorical|continuous> \
-  --case_label <v>] \
-  --control_label <v>]
+  --case_label <v> \
+  --control_label <v>
 ```
 
 | Argument | Notes |
@@ -569,20 +569,8 @@ Rscript will reads:
 - `<base_dir>/overlap/<project_overlap>/<universe_file_path>` as universe genes by default.
 - `--universe_file` (default: `<base_dir>/overlap/<project_overlap>/twas_detected_gene_name.csv`)
 
-**`--gene_file` and `--universe_file`** accept either a **bare filename**
-(resolved under `overlap/<project_overlap>/`) or a **full path** (used as-is).
-Both files **must contain a column named `gene_name`**; the script extracts
-unique non-empty values from that column as the candidate / universe sets.
-
-**`--gobp_fdr_cutoff` and `--kegg_fdr_cutoff`** let you tag GOBP and KEGG output
-files with different cutoffs (e.g. when GOBP has many enriched terms but KEGG
-has very few). If omitted, both inherit from `--fdr_cutoff`. These values affect
-only the output filenames (`*_GOBP_ORA_FDR<gobp>*` and `*_KEGG_ORA_FDR<kegg>*`).
-
-Rscript will read:
-
-- `<base_dir>/overlap/<project_overlap>/overlap_gene_name_pairwise_union.csv` as candidate genes
-- `<base_dir>/overlap/<project_overlap>/twas_detected_gene_name.csv` as universe genes
+**`--gobp_fdr_cutoff` and `--kegg_fdr_cutoff`** let you tag GOBP and KEGG output files with different cutoffs 
+(e.g. when GOBP has many enriched terms but KEGG has very few). 
 
 Outputs files:
 
@@ -605,8 +593,8 @@ genes by location.
 ```bash
 Rscript gene_position_from_gencode_cli.R \
     --project_name <project_name_in_overlap_folder> \
-    --base_dir <base_direction_path>\
-    --gene_file <gene_file_full_path>\
+    --base_dir <base_direction_path> \
+    --gene_file <gene_file_full_path> \
     --version [v26|v19]
 ```
 
