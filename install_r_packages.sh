@@ -37,11 +37,8 @@ sudo apt install -y \
     libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev \
     libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev \
     libcurl4-openssl-dev libssl-dev libgit2-dev gfortran \
-    libglpk-dev libgmp-dev \
     cmake make g++
 ok "System dependencies installed"
-# Note: libglpk-dev and libgmp-dev are REQUIRED by igraph (a clusterProfiler
-# dependency). Without them clusterProfiler fails to compile.
 
 # ---------------------------------------------------------------------
 # Step 2: Run the R installer
